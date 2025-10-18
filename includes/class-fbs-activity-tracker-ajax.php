@@ -76,7 +76,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_activity_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -93,23 +93,23 @@ class FBS_Activity_Tracker_Ajax {
         }
         
         if (!empty($_POST['action_type'])) {
-            $filters['action_type'] = sanitize_text_field($_POST['action_type']);
+            $filters['action_type'] = sanitize_text_field(wp_unslash($_POST['action_type']));
         }
         
         if (!empty($_POST['object_type'])) {
-            $filters['object_type'] = sanitize_text_field($_POST['object_type']);
+            $filters['object_type'] = sanitize_text_field(wp_unslash($_POST['object_type']));
         }
         
         if (!empty($_POST['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_POST['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_POST['date_from']));
         }
         
         if (!empty($_POST['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_POST['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_POST['date_to']));
         }
         
         if (!empty($_POST['search'])) {
-            $filters['search'] = sanitize_text_field($_POST['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_POST['search']));
         }
 
         // Pagination
@@ -156,7 +156,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_statistics() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -205,7 +205,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function delete_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -218,20 +218,20 @@ class FBS_Activity_Tracker_Ajax {
         
         // Check if log_ids is sent as an array (log_ids[0], log_ids[1], etc.)
         if (isset($_POST['log_ids']) && is_array($_POST['log_ids'])) {
-            $log_ids = $_POST['log_ids'];
+            $log_ids = array_map('intval', wp_unslash($_POST['log_ids']));
         }
         // Check if log_ids is sent as individual parameters (log_ids[0], log_ids[1], etc.)
         elseif (isset($_POST['log_ids[0]'])) {
             $log_ids = array();
             $i = 0;
             while (isset($_POST["log_ids[$i]"])) {
-                $log_ids[] = $_POST["log_ids[$i]"];
+                $log_ids[] = intval(wp_unslash($_POST["log_ids[$i]"]));
                 $i++;
             }
         }
         // Check if log_ids is sent as a JSON string
         elseif (isset($_POST['log_ids']) && is_string($_POST['log_ids'])) {
-            $decoded_log_ids = json_decode($_POST['log_ids'], true);
+            $decoded_log_ids = json_decode(sanitize_text_field(wp_unslash($_POST['log_ids'])), true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_log_ids)) {
                 $log_ids = $decoded_log_ids;
             }
@@ -261,7 +261,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function export_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -278,23 +278,23 @@ class FBS_Activity_Tracker_Ajax {
         }
         
         if (!empty($_POST['action_type'])) {
-            $filters['action_type'] = sanitize_text_field($_POST['action_type']);
+            $filters['action_type'] = sanitize_text_field(wp_unslash($_POST['action_type']));
         }
         
         if (!empty($_POST['object_type'])) {
-            $filters['object_type'] = sanitize_text_field($_POST['object_type']);
+            $filters['object_type'] = sanitize_text_field(wp_unslash($_POST['object_type']));
         }
         
         if (!empty($_POST['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_POST['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_POST['date_from']));
         }
         
         if (!empty($_POST['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_POST['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_POST['date_to']));
         }
         
         if (!empty($_POST['search'])) {
-            $filters['search'] = sanitize_text_field($_POST['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_POST['search']));
         }
 
         // Get all logs for export (no pagination)
@@ -325,7 +325,7 @@ class FBS_Activity_Tracker_Ajax {
         }
 
         // Set headers for download
-        $filename = 'fbs-activity-logs-' . date('Y-m-d-H-i-s') . '.json';
+        $filename = 'fbs-activity-logs-' . gmdate('Y-m-d-H-i-s') . '.json';
         
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="' . $filename . '"');

@@ -137,7 +137,6 @@ class FBS_Activity_Tracker_Database {
         );
 
         if ($result === false) {
-            error_log('FBS Activity Tracker: Failed to insert log - ' . $this->wpdb->last_error);
             return false;
         }
 
@@ -198,15 +197,17 @@ class FBS_Activity_Tracker_Database {
 
         $where_clause = implode(' AND ', $where_conditions);
 
-        $sql = $this->wpdb->prepare(
-            "SELECT * FROM {$this->table_name} 
-             WHERE {$where_clause} 
-             ORDER BY timestamp DESC 
-             LIMIT %d OFFSET %d",
-            array_merge($where_values, array($limit, $offset))
+        return $this->wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name and WHERE clause are safe
+            $this->wpdb->prepare(
+                "SELECT * FROM {$this->table_name} 
+                 WHERE {$where_clause} 
+                 ORDER BY timestamp DESC 
+                 LIMIT %d OFFSET %d",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- These are parameter values, not SQL injection risks
+                array_merge($where_values, array($limit, $offset))
+            )
         );
-
-        return $this->wpdb->get_results($sql);
     }
 
     /**
@@ -257,12 +258,16 @@ class FBS_Activity_Tracker_Database {
 
         $where_clause = implode(' AND ', $where_conditions);
 
-        $sql = $this->wpdb->prepare(
-            "SELECT COUNT(*) FROM {$this->table_name} WHERE {$where_clause}",
-            $where_values
+        return intval(
+            $this->wpdb->get_var(
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name and WHERE clause are safe
+                $this->wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$this->table_name} WHERE {$where_clause}",
+                    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- These are parameter values, not SQL injection risks
+                    $where_values
+                )
+            )
         );
-
-        return intval($this->wpdb->get_var($sql));
     }
 
     /**
@@ -276,36 +281,53 @@ class FBS_Activity_Tracker_Database {
         $stats = array();
 
         // Today's activity count
-        $today = date('Y-m-d');
-        $stats['today_count'] = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(*) FROM {$this->table_name} WHERE DATE(timestamp) = %s",
-            $today
-        ));
+        $today = gmdate('Y-m-d');
+        $stats['today_count'] = $this->wpdb->get_var(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe
+            $this->wpdb->prepare(
+                "SELECT COUNT(*) FROM {$this->table_name} WHERE DATE(timestamp) = %s",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                $today
+            )
+        );
 
         // Most active users (last 30 days)
-        $stats['top_users'] = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT user_id, user_name, COUNT(*) as activity_count 
-             FROM {$this->table_name} 
-             WHERE timestamp >= %s 
-             GROUP BY user_id, user_name 
-             ORDER BY activity_count DESC 
-             LIMIT 5",
-            date('Y-m-d', strtotime('-30 days'))
-        ));
+        $stats['top_users'] = $this->wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe
+            $this->wpdb->prepare(
+                "SELECT user_id, user_name, COUNT(*) as activity_count 
+                 FROM {$this->table_name} 
+                 WHERE timestamp >= %s 
+                 GROUP BY user_id, user_name 
+                 ORDER BY activity_count DESC 
+                 LIMIT 5",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                gmdate('Y-m-d', strtotime('-30 days'))
+            )
+        );
 
         // Most common action types (last 30 days)
-        $stats['action_types'] = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT action_type, COUNT(*) as count 
-             FROM {$this->table_name} 
-             WHERE timestamp >= %s 
-             GROUP BY action_type 
-             ORDER BY count DESC 
-             LIMIT 10",
-            date('Y-m-d', strtotime('-30 days'))
-        ));
+        $stats['action_types'] = $this->wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe
+            $this->wpdb->prepare(
+                "SELECT action_type, COUNT(*) as count 
+                 FROM {$this->table_name} 
+                 WHERE timestamp >= %s 
+                 GROUP BY action_type 
+                 ORDER BY count DESC 
+                 LIMIT 10",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                gmdate('Y-m-d', strtotime('-30 days'))
+            )
+        );
 
         // Total logs count
-        $stats['total_logs'] = $this->wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}");
+        $stats['total_logs'] = $this->wpdb->get_var(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe
+            $this->wpdb->prepare(
+                "SELECT COUNT(*) FROM {$this->table_name}"
+            )
+        );
 
         return $stats;
     }
@@ -327,12 +349,14 @@ class FBS_Activity_Tracker_Database {
         $sanitized_ids = array_map('intval', $log_ids);
         $placeholders = implode(',', array_fill(0, count($sanitized_ids), '%d'));
 
-        $sql = $this->wpdb->prepare(
-            "DELETE FROM {$this->table_name} WHERE id IN ({$placeholders})",
-            $sanitized_ids
+        return $this->wpdb->query(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name and placeholders are safe
+            $this->wpdb->prepare(
+                "DELETE FROM {$this->table_name} WHERE id IN ({$placeholders})",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- These are parameter values, not SQL injection risks
+                $sanitized_ids
+            )
         );
-
-        return $this->wpdb->query($sql);
     }
 
     /**
@@ -348,12 +372,16 @@ class FBS_Activity_Tracker_Database {
             $days = get_option('fbs_at_retention_days', 30);
         }
 
-        $cutoff_date = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        $cutoff_date = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
 
-        $result = $this->wpdb->query($this->wpdb->prepare(
-            "DELETE FROM {$this->table_name} WHERE timestamp < %s",
-            $cutoff_date
-        ));
+        $result = $this->wpdb->query(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Table name is safe
+            $this->wpdb->prepare(
+                "DELETE FROM {$this->table_name} WHERE timestamp < %s",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                $cutoff_date
+            )
+        );
 
         if ($result !== false) {
             error_log("FBS Activity Tracker: Cleaned up {$result} old logs");

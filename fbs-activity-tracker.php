@@ -75,7 +75,6 @@ class FBS_Activity_Tracker {
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
         
         add_action('init', array($this, 'init'));
-        add_action('plugins_loaded', array($this, 'load_textdomain'));
     }
 
     /**
@@ -111,19 +110,6 @@ class FBS_Activity_Tracker {
         
         // Initialize AJAX handlers
         FBS_Activity_Tracker_Ajax::get_instance();
-    }
-
-    /**
-     * Load plugin textdomain
-     * @author Fazle Bari <fazlebarisn@gmail.com>
-     * @since 1.0.0
-     */
-    public function load_textdomain() {
-        load_plugin_textdomain(
-            'fbs-activity-tracker',
-            false,
-            dirname(plugin_basename(__FILE__)) . '/languages'
-        );
     }
 
     /**
