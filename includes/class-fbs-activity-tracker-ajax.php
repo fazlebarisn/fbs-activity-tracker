@@ -245,6 +245,7 @@ class FBS_Activity_Tracker_Ajax {
 
         if ($deleted_count !== false) {
             wp_send_json_success(array(
+                // translators: %d is the number of logs deleted
                 'message' => sprintf(esc_html__('%d logs deleted successfully.', 'fbs-activity-tracker'), $deleted_count),
                 'deleted_count' => $deleted_count
             ));
@@ -351,12 +352,15 @@ class FBS_Activity_Tracker_Ajax {
             return esc_html__('Just now', 'fbs-activity-tracker');
         } elseif ($diff < 3600) {
             $minutes = floor($diff / 60);
+            // translators: %d is the number of minutes
             return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'fbs-activity-tracker'), $minutes);
         } elseif ($diff < 86400) {
             $hours = floor($diff / 3600);
+            // translators: %d is the number of hours
             return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'fbs-activity-tracker'), $hours);
         } elseif ($diff < 2592000) {
             $days = floor($diff / 86400);
+            // translators: %d is the number of days
             return sprintf(_n('%d day ago', '%d days ago', $days, 'fbs-activity-tracker'), $days);
         } else {
             return date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $time);
