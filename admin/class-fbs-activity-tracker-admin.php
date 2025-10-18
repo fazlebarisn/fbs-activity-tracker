@@ -323,7 +323,7 @@ class FBS_Activity_Tracker_Admin {
         <!-- Hidden form for AJAX requests -->
         <form id="fbs-at-ajax-form" style="display: none;">
             <input type="hidden" name="action" value="fbs_at_get_activity_logs">
-            <input type="hidden" name="nonce" value="<?php echo wp_create_nonce('fbs_at_nonce'); ?>">
+            <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('fbs_at_nonce')); ?>">
             <input type="hidden" name="limit" value="50">
             <input type="hidden" name="offset" value="0">
         </form>
