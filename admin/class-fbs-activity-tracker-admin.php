@@ -120,20 +120,20 @@ class FBS_Activity_Tracker_Admin {
                 <div class="fbs-at-header-content">
                     <h1 class="fbs-at-title">
                         <span class="fbs-at-icon">📊</span>
-                        <?php _e('Activity Tracker', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Activity Tracker', 'fbs-activity-tracker'); ?>
                     </h1>
                     <p class="fbs-at-subtitle">
-                        <?php _e('Monitor user activities and system changes in real-time', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Monitor user activities and system changes in real-time', 'fbs-activity-tracker'); ?>
                     </p>
                 </div>
                 <div class="fbs-at-header-actions">
                     <button type="button" class="fbs-at-btn fbs-at-btn-secondary" id="fbs-at-refresh-btn">
                         <span class="fbs-at-btn-icon">🔄</span>
-                        <?php _e('Refresh', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Refresh', 'fbs-activity-tracker'); ?>
                     </button>
                     <button type="button" class="fbs-at-btn fbs-at-btn-primary" id="fbs-at-export-btn">
                         <span class="fbs-at-btn-icon">📥</span>
-                        <?php _e('Export', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Export', 'fbs-activity-tracker'); ?>
                     </button>
                 </div>
             </div>
@@ -144,21 +144,21 @@ class FBS_Activity_Tracker_Admin {
                     <div class="fbs-at-stat-icon fbs-at-stat-icon-primary">📈</div>
                     <div class="fbs-at-stat-content">
                         <div class="fbs-at-stat-value" id="fbs-at-today-count">-</div>
-                        <div class="fbs-at-stat-label"><?php _e('Today\'s Activity', 'fbs-activity-tracker'); ?></div>
+                        <div class="fbs-at-stat-label"><?php esc_html_e('Today\'s Activity', 'fbs-activity-tracker'); ?></div>
                     </div>
                 </div>
                 <div class="fbs-at-stat-card">
                     <div class="fbs-at-stat-icon fbs-at-stat-icon-success">👥</div>
                     <div class="fbs-at-stat-content">
                         <div class="fbs-at-stat-value" id="fbs-at-active-users">-</div>
-                        <div class="fbs-at-stat-label"><?php _e('Active Users', 'fbs-activity-tracker'); ?></div>
+                        <div class="fbs-at-stat-label"><?php esc_html_e('Active Users', 'fbs-activity-tracker'); ?></div>
                     </div>
                 </div>
                 <div class="fbs-at-stat-card">
                     <div class="fbs-at-stat-icon fbs-at-stat-icon-warning">📝</div>
                     <div class="fbs-at-stat-content">
                         <div class="fbs-at-stat-value" id="fbs-at-total-logs">-</div>
-                        <div class="fbs-at-stat-label"><?php _e('Total Logs', 'fbs-activity-tracker'); ?></div>
+                        <div class="fbs-at-stat-label"><?php esc_html_e('Total Logs', 'fbs-activity-tracker'); ?></div>
                     </div>
                 </div>
             </div>
@@ -168,10 +168,10 @@ class FBS_Activity_Tracker_Admin {
                 <div class="fbs-at-filters-row">
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-user-filter" class="fbs-at-filter-label">
-                            <?php _e('User', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('User', 'fbs-activity-tracker'); ?>
                         </label>
                         <select id="fbs-at-user-filter" class="fbs-at-filter-select">
-                            <option value=""><?php _e('All Users', 'fbs-activity-tracker'); ?></option>
+                            <option value=""><?php esc_html_e('All Users', 'fbs-activity-tracker'); ?></option>
                             <?php foreach ($users as $user): ?>
                                 <option value="<?php echo esc_attr($user->ID); ?>">
                                     <?php echo esc_html($user->display_name); ?>
@@ -182,10 +182,10 @@ class FBS_Activity_Tracker_Admin {
 
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-action-filter" class="fbs-at-filter-label">
-                            <?php _e('Action Type', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Action Type', 'fbs-activity-tracker'); ?>
                         </label>
                         <select id="fbs-at-action-filter" class="fbs-at-filter-select">
-                            <option value=""><?php _e('All Actions', 'fbs-activity-tracker'); ?></option>
+                            <option value=""><?php esc_html_e('All Actions', 'fbs-activity-tracker'); ?></option>
                             <?php foreach ($action_types as $type => $label): ?>
                                 <option value="<?php echo esc_attr($type); ?>">
                                     <?php echo esc_html($label); ?>
@@ -196,10 +196,10 @@ class FBS_Activity_Tracker_Admin {
 
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-object-filter" class="fbs-at-filter-label">
-                            <?php _e('Object Type', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Object Type', 'fbs-activity-tracker'); ?>
                         </label>
                         <select id="fbs-at-object-filter" class="fbs-at-filter-select">
-                            <option value=""><?php _e('All Objects', 'fbs-activity-tracker'); ?></option>
+                            <option value=""><?php esc_html_e('All Objects', 'fbs-activity-tracker'); ?></option>
                             <?php foreach ($object_types as $type => $label): ?>
                                 <option value="<?php echo esc_attr($type); ?>">
                                     <?php echo esc_html($label); ?>
@@ -210,17 +210,17 @@ class FBS_Activity_Tracker_Admin {
 
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-date-range" class="fbs-at-filter-label">
-                            <?php _e('Date Range', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Date Range', 'fbs-activity-tracker'); ?>
                         </label>
                         <select id="fbs-at-date-range" class="fbs-at-filter-select">
-                            <option value=""><?php _e('All Time', 'fbs-activity-tracker'); ?></option>
-                            <option value="today"><?php _e('Today', 'fbs-activity-tracker'); ?></option>
-                            <option value="yesterday"><?php _e('Yesterday', 'fbs-activity-tracker'); ?></option>
-                            <option value="last7days"><?php _e('Last 7 days', 'fbs-activity-tracker'); ?></option>
-                            <option value="last30days"><?php _e('Last 30 days', 'fbs-activity-tracker'); ?></option>
-                            <option value="thismonth"><?php _e('This month', 'fbs-activity-tracker'); ?></option>
-                            <option value="lastmonth"><?php _e('Last month', 'fbs-activity-tracker'); ?></option>
-                            <option value="custom"><?php _e('Custom range', 'fbs-activity-tracker'); ?></option>
+                            <option value=""><?php esc_html_e('All Time', 'fbs-activity-tracker'); ?></option>
+                            <option value="today"><?php esc_html_e('Today', 'fbs-activity-tracker'); ?></option>
+                            <option value="yesterday"><?php esc_html_e('Yesterday', 'fbs-activity-tracker'); ?></option>
+                            <option value="last7days"><?php esc_html_e('Last 7 days', 'fbs-activity-tracker'); ?></option>
+                            <option value="last30days"><?php esc_html_e('Last 30 days', 'fbs-activity-tracker'); ?></option>
+                            <option value="thismonth"><?php esc_html_e('This month', 'fbs-activity-tracker'); ?></option>
+                            <option value="lastmonth"><?php esc_html_e('Last month', 'fbs-activity-tracker'); ?></option>
+                            <option value="custom"><?php esc_html_e('Custom range', 'fbs-activity-tracker'); ?></option>
                         </select>
                     </div>
                 </div>
@@ -228,13 +228,13 @@ class FBS_Activity_Tracker_Admin {
                 <div class="fbs-at-filters-row" id="fbs-at-custom-date-row" style="display: none;">
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-date-from" class="fbs-at-filter-label">
-                            <?php _e('From', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('From', 'fbs-activity-tracker'); ?>
                         </label>
                         <input type="date" id="fbs-at-date-from" class="fbs-at-filter-input">
                     </div>
                     <div class="fbs-at-filter-group">
                         <label for="fbs-at-date-to" class="fbs-at-filter-label">
-                            <?php _e('To', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('To', 'fbs-activity-tracker'); ?>
                         </label>
                         <input type="date" id="fbs-at-date-to" class="fbs-at-filter-input">
                     </div>
@@ -243,7 +243,7 @@ class FBS_Activity_Tracker_Admin {
                 <div class="fbs-at-filters-row">
                     <div class="fbs-at-filter-group fbs-at-filter-group-search">
                         <label for="fbs-at-search" class="fbs-at-filter-label">
-                            <?php _e('Search', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Search', 'fbs-activity-tracker'); ?>
                         </label>
                         <div class="fbs-at-search-container">
                             <input type="text" id="fbs-at-search" class="fbs-at-filter-input fbs-at-search-input" 
@@ -255,10 +255,10 @@ class FBS_Activity_Tracker_Admin {
                     </div>
                     <div class="fbs-at-filter-actions">
                         <button type="button" class="fbs-at-btn fbs-at-btn-primary" id="fbs-at-apply-filters">
-                            <?php _e('Apply Filters', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Apply Filters', 'fbs-activity-tracker'); ?>
                         </button>
                         <button type="button" class="fbs-at-btn fbs-at-btn-secondary" id="fbs-at-clear-filters">
-                            <?php _e('Clear', 'fbs-activity-tracker'); ?>
+                            <?php esc_html_e('Clear', 'fbs-activity-tracker'); ?>
                         </button>
                     </div>
                 </div>
@@ -267,16 +267,16 @@ class FBS_Activity_Tracker_Admin {
             <!-- Bulk Actions -->
             <div class="fbs-at-bulk-actions" id="fbs-at-bulk-actions" style="display: none;">
                 <div class="fbs-at-bulk-info">
-                    <span id="fbs-at-selected-count">0</span> <?php _e('logs selected', 'fbs-activity-tracker'); ?>
+                    <span id="fbs-at-selected-count">0</span> <?php esc_html_e('logs selected', 'fbs-activity-tracker'); ?>
                 </div>
                 <div class="fbs-at-bulk-buttons">
                     <button type="button" class="fbs-at-btn fbs-at-btn-danger" id="fbs-at-bulk-delete">
                         <span class="fbs-at-btn-icon">🗑️</span>
-                        <?php _e('Delete Selected', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Delete Selected', 'fbs-activity-tracker'); ?>
                     </button>
                     <button type="button" class="fbs-at-btn fbs-at-btn-secondary" id="fbs-at-bulk-export">
                         <span class="fbs-at-btn-icon">📥</span>
-                        <?php _e('Export Selected', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Export Selected', 'fbs-activity-tracker'); ?>
                     </button>
                 </div>
             </div>
@@ -285,12 +285,12 @@ class FBS_Activity_Tracker_Admin {
             <div class="fbs-at-activity-container">
                 <div class="fbs-at-activity-header">
                     <h2 class="fbs-at-activity-title">
-                        <?php _e('Activity Feed', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Activity Feed', 'fbs-activity-tracker'); ?>
                     </h2>
                     <div class="fbs-at-activity-controls">
                         <label class="fbs-at-checkbox-label">
                             <input type="checkbox" id="fbs-at-select-all" class="fbs-at-checkbox">
-                            <span class="fbs-at-checkbox-text"><?php _e('Select All', 'fbs-activity-tracker'); ?></span>
+                            <span class="fbs-at-checkbox-text"><?php esc_html_e('Select All', 'fbs-activity-tracker'); ?></span>
                         </label>
                     </div>
                 </div>
@@ -301,20 +301,20 @@ class FBS_Activity_Tracker_Admin {
 
                 <div class="fbs-at-loading" id="fbs-at-loading" style="display: none;">
                     <div class="fbs-at-spinner"></div>
-                    <span class="fbs-at-loading-text"><?php _e('Loading...', 'fbs-activity-tracker'); ?></span>
+                    <span class="fbs-at-loading-text"><?php esc_html_e('Loading...', 'fbs-activity-tracker'); ?></span>
                 </div>
 
                 <div class="fbs-at-no-results" id="fbs-at-no-results" style="display: none;">
                     <div class="fbs-at-no-results-icon">📭</div>
-                    <h3 class="fbs-at-no-results-title"><?php _e('No activity logs found', 'fbs-activity-tracker'); ?></h3>
+                    <h3 class="fbs-at-no-results-title"><?php esc_html_e('No activity logs found', 'fbs-activity-tracker'); ?></h3>
                     <p class="fbs-at-no-results-text">
-                        <?php _e('Try adjusting your filters or check back later for new activity.', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Try adjusting your filters or check back later for new activity.', 'fbs-activity-tracker'); ?>
                     </p>
                 </div>
 
                 <div class="fbs-at-load-more" id="fbs-at-load-more" style="display: none;">
                     <button type="button" class="fbs-at-btn fbs-at-btn-secondary fbs-at-btn-large" id="fbs-at-load-more-btn">
-                        <?php _e('Load More', 'fbs-activity-tracker'); ?>
+                        <?php esc_html_e('Load More', 'fbs-activity-tracker'); ?>
                     </button>
                 </div>
             </div>
