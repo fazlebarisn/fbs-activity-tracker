@@ -247,7 +247,7 @@ class FBS_Activity_Tracker_Admin {
                         </label>
                         <div class="fbs-at-search-container">
                             <input type="text" id="fbs-at-search" class="fbs-at-filter-input fbs-at-search-input" 
-                                   placeholder="<?php esc_attr_e('Search in logs...', 'fbs-activity-tracker'); ?>">
+                                    placeholder="<?php esc_attr_e('Search in logs...', 'fbs-activity-tracker'); ?>">
                             <button type="button" class="fbs-at-search-btn" id="fbs-at-search-btn">
                                 <span class="fbs-at-search-icon">🔍</span>
                             </button>

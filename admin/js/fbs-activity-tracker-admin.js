@@ -1,516 +1,671 @@
 /**
  * FBS Activity Tracker - Modern Admin JavaScript
- * Custom dashboard interface with AJAX, filtering, and infinite scroll
- */
-
-/**
- * FBS Activity Tracker - Modern Admin JavaScript
- * Custom dashboard interface with AJAX, filtering, and infinite scroll
+ * Custom-designed dashboard interface
  * @author Fazle Bari <fazlebarisn@gmail.com>
  * @since 1.0.0
  */
-class FBSActivityTracker {
-    /**
-     * Constructor
-     * @author Fazle Bari <fazlebarisn@gmail.com>
-     * @since 1.0.0
-     */
-    constructor() {
-        this.currentFilters = {};
-        this.currentOffset = 0;
-        this.isLoading = false;
-        this.hasMore = true;
-        this.selectedLogs = new Set();
-        this.logs = [];
-        
-        this.init();
-    }
 
-    init() {
-        this.bindEvents();
-        this.loadStatistics();
-        this.loadActivityLogs();
-    }
+(function() {
+    'use strict';
 
-    bindEvents() {
-        // Filter controls
-        document.getElementById('fbs-at-apply-filters')?.addEventListener('click', () => this.applyFilters());
-        document.getElementById('fbs-at-clear-filters')?.addEventListener('click', () => this.clearFilters());
-        document.getElementById('fbs-at-refresh-btn')?.addEventListener('click', () => this.refreshData());
-        
-        // Date range filter
-        document.getElementById('fbs-at-date-range')?.addEventListener('change', (e) => this.handleDateRangeChange(e.target.value));
-        
-        // Search
-        document.getElementById('fbs-at-search-btn')?.addEventListener('click', () => this.applyFilters());
-        document.getElementById('fbs-at-search')?.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') this.applyFilters();
-        });
-        
-        // Bulk actions
-        document.getElementById('fbs-at-select-all')?.addEventListener('change', (e) => this.toggleSelectAll(e.target.checked));
-        document.getElementById('fbs-at-bulk-delete')?.addEventListener('click', () => this.bulkDelete());
-        document.getElementById('fbs-at-bulk-export')?.addEventListener('click', () => this.bulkExport());
-        
-        // Export
-        document.getElementById('fbs-at-export-btn')?.addEventListener('click', () => this.exportLogs());
-        
-        // Load more
-        document.getElementById('fbs-at-load-more-btn')?.addEventListener('click', () => this.loadMore());
-        
-        // Infinite scroll
-        this.setupInfiniteScroll();
-    }
+    // Main application object
+    const FBSActivityTracker = {
+        // Configuration
+        config: {
+            ajaxUrl: fbsActivityTracker.ajaxUrl,
+            nonce: fbsActivityTracker.nonce,
+            strings: fbsActivityTracker.strings,
+            actions: fbsActivityTracker.actions,
+            itemsPerPage: 50,
+            currentOffset: 0,
+            isLoading: false,
+            selectedLogs: new Set()
+        },
 
-    async loadStatistics() {
-        try {
-            const response = await this.makeAjaxRequest('fbs_at_get_statistics', {});
-            
-            if (response.success) {
-                this.updateStatistics(response.data);
-            }
-        } catch (error) {
-            console.error('Failed to load statistics:', error);
-        }
-    }
+        // Initialize the application
+        init() {
+            this.bindEvents();
+            this.loadStatistics();
+            this.loadActivityLogs();
+            this.setupInfiniteScroll();
+        },
 
-    async loadActivityLogs(reset = false) {
-        if (this.isLoading) return;
-        
-        this.isLoading = true;
-        this.showLoading();
-        
-        if (reset) {
-            this.currentOffset = 0;
-            this.hasMore = true;
-            this.logs = [];
-            this.clearActivityFeed();
-        }
-
-        try {
-            const response = await this.makeAjaxRequest('fbs_at_get_activity_logs', {
-                ...this.currentFilters,
-                limit: 50,
-                offset: this.currentOffset
+        // Bind event listeners
+        bindEvents() {
+            // Filter controls
+            document.getElementById('fbs-at-apply-filters')?.addEventListener('click', () => this.applyFilters());
+            document.getElementById('fbs-at-clear-filters')?.addEventListener('click', () => this.clearFilters());
+            document.getElementById('fbs-at-search-btn')?.addEventListener('click', () => this.applyFilters());
+            document.getElementById('fbs-at-search')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.applyFilters();
             });
 
-            if (response.success) {
-                this.logs = reset ? response.data.logs : [...this.logs, ...response.data.logs];
-                this.hasMore = response.data.has_more;
-                this.renderActivityLogs(response.data.logs, reset);
-                this.updateLoadMoreButton();
-            } else {
-                this.showError(response.data || fbsActivityTracker.strings.error);
+            // Date range filter
+            document.getElementById('fbs-at-date-range')?.addEventListener('change', (e) => {
+                this.handleDateRangeChange(e.target.value);
+            });
+
+            // Bulk actions
+            document.getElementById('fbs-at-select-all')?.addEventListener('change', (e) => {
+                this.toggleSelectAll(e.target.checked);
+            });
+            document.getElementById('fbs-at-bulk-delete')?.addEventListener('click', () => this.bulkDelete());
+            document.getElementById('fbs-at-bulk-export')?.addEventListener('click', () => this.bulkExport());
+
+            // Header actions
+            document.getElementById('fbs-at-refresh-btn')?.addEventListener('click', () => this.refresh());
+            document.getElementById('fbs-at-export-btn')?.addEventListener('click', () => this.exportAll());
+
+            // Load more
+            document.getElementById('fbs-at-load-more-btn')?.addEventListener('click', () => this.loadMore());
+        },
+
+        // Load dashboard statistics
+        async loadStatistics() {
+            try {
+                const response = await this.makeAjaxRequest(this.config.actions.getStats, {});
+                
+                if (response.success) {
+                    this.updateStatistics(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to load statistics:', error);
             }
-        } catch (error) {
-            console.error('Failed to load activity logs:', error);
-            this.showError(fbsActivityTracker.strings.error);
-        } finally {
-            this.isLoading = false;
-            this.hideLoading();
-        }
-    }
+        },
 
-    async loadMore() {
-        if (!this.hasMore || this.isLoading) return;
-        
-        this.currentOffset += 50;
-        await this.loadActivityLogs(false);
-    }
+        // Update statistics display
+        updateStatistics(data) {
+            const todayCountEl = document.getElementById('fbs-at-today-count');
+            const totalLogsEl = document.getElementById('fbs-at-total-logs');
+            const activeUsersEl = document.getElementById('fbs-at-active-users');
 
-    applyFilters() {
-        this.currentFilters = {
-            user_id: document.getElementById('fbs-at-user-filter')?.value || '',
-            action_type: document.getElementById('fbs-at-action-filter')?.value || '',
-            object_type: document.getElementById('fbs-at-object-filter')?.value || '',
-            search: document.getElementById('fbs-at-search')?.value || '',
-            date_from: document.getElementById('fbs-at-date-from')?.value || '',
-            date_to: document.getElementById('fbs-at-date-to')?.value || ''
-        };
+            if (todayCountEl) todayCountEl.textContent = data.today_count || 0;
+            if (totalLogsEl) totalLogsEl.textContent = data.total_logs || 0;
+            if (activeUsersEl) activeUsersEl.textContent = data.top_users?.length || 0;
+        },
 
-        // Remove empty filters
-        Object.keys(this.currentFilters).forEach(key => {
-            if (!this.currentFilters[key]) {
-                delete this.currentFilters[key];
+        // Load activity logs
+        async loadActivityLogs(reset = true) {
+            if (this.config.isLoading) return;
+
+            this.config.isLoading = true;
+            this.showLoading();
+
+            if (reset) {
+                this.config.currentOffset = 0;
+                this.clearActivityFeed();
             }
-        });
 
-        this.loadActivityLogs(true);
-    }
+            try {
+                const filters = this.getCurrentFilters();
+                const response = await this.makeAjaxRequest(this.config.actions.getLogs, {
+                    ...filters,
+                    limit: this.config.itemsPerPage,
+                    offset: this.config.currentOffset
+                });
 
-    clearFilters() {
-        // Reset all filter inputs
-        document.getElementById('fbs-at-user-filter').value = '';
-        document.getElementById('fbs-at-action-filter').value = '';
-        document.getElementById('fbs-at-object-filter').value = '';
-        document.getElementById('fbs-at-search').value = '';
-        document.getElementById('fbs-at-date-range').value = '';
-        document.getElementById('fbs-at-date-from').value = '';
-        document.getElementById('fbs-at-date-to').value = '';
-        
-        // Hide custom date inputs
-        document.getElementById('fbs-at-custom-date-row').style.display = 'none';
-        
-        // Clear current filters and reload
-        this.currentFilters = {};
-        this.loadActivityLogs(true);
-    }
+                if (response.success) {
+                    this.displayActivityLogs(response.data.logs, reset);
+                    this.updateLoadMoreButton(response.data.has_more);
+                } else {
+                    this.showError(this.config.strings.error);
+                }
+            } catch (error) {
+                console.error('Failed to load activity logs:', error);
+                this.showError(this.config.strings.error);
+            } finally {
+                this.config.isLoading = false;
+                this.hideLoading();
+            }
+        },
 
-    handleDateRangeChange(value) {
-        const customDateRow = document.getElementById('fbs-at-custom-date-row');
-        const dateFrom = document.getElementById('fbs-at-date-from');
-        const dateTo = document.getElementById('fbs-at-date-to');
-        
-        if (value === 'custom') {
-            customDateRow.style.display = 'grid';
-            return;
-        }
-        
-        customDateRow.style.display = 'none';
-        
-        // Set date range based on selection
-        const now = new Date();
-        let fromDate = '';
-        let toDate = '';
-        
-        switch (value) {
-            case 'today':
-                fromDate = toDate = this.formatDate(now);
-                break;
-            case 'yesterday':
-                const yesterday = new Date(now);
-                yesterday.setDate(yesterday.getDate() - 1);
-                fromDate = toDate = this.formatDate(yesterday);
-                break;
-            case 'last7days':
-                const weekAgo = new Date(now);
-                weekAgo.setDate(weekAgo.getDate() - 7);
-                fromDate = this.formatDate(weekAgo);
-                toDate = this.formatDate(now);
-                break;
-            case 'last30days':
-                const monthAgo = new Date(now);
-                monthAgo.setDate(monthAgo.getDate() - 30);
-                fromDate = this.formatDate(monthAgo);
-                toDate = this.formatDate(now);
-                break;
-            case 'thismonth':
-                fromDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-                toDate = this.formatDate(now);
-                break;
-            case 'lastmonth':
-                const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-                fromDate = this.formatDate(lastMonth);
-                toDate = this.formatDate(lastMonthEnd);
-                break;
-        }
-        
-        if (fromDate) {
-            this.currentFilters.date_from = fromDate;
-            this.currentFilters.date_to = toDate;
-        } else {
-            delete this.currentFilters.date_from;
-            delete this.currentFilters.date_to;
-        }
-        
-        this.loadActivityLogs(true);
-    }
+        // Display activity logs in the feed
+        displayActivityLogs(logs, reset = true) {
+            const feed = document.getElementById('fbs-at-activity-feed');
+            const noResults = document.getElementById('fbs-at-no-results');
 
-    formatDate(date) {
-        return date.toISOString().split('T')[0];
-    }
+            if (!feed) return;
 
-    renderActivityLogs(logs, reset = false) {
-        const feed = document.getElementById('fbs-at-activity-feed');
-        
-        if (reset) {
-            feed.innerHTML = '';
-        }
-        
-        if (logs.length === 0 && reset) {
-            this.showNoResults();
-            return;
-        }
-        
-        this.hideNoResults();
-        
-        logs.forEach(log => {
-            const logElement = this.createLogElement(log);
-            feed.appendChild(logElement);
-        });
-    }
+            if (logs.length === 0 && reset) {
+                this.showNoResults();
+                return;
+            }
 
-    createLogElement(log) {
-        const div = document.createElement('div');
-        div.className = 'fbs-at-activity-item';
-        div.dataset.logId = log.id;
-        
-        div.innerHTML = `
-            <div class="fbs-at-activity-checkbox">
-                <input type="checkbox" class="fbs-at-checkbox fbs-at-log-checkbox" 
-                       value="${log.id}" onchange="fbsActivityTrackerApp.toggleLogSelection(${log.id}, this.checked)">
-            </div>
-            <div class="fbs-at-activity-avatar">
-                ${log.user_avatar}
-            </div>
-            <div class="fbs-at-activity-content">
-                <div class="fbs-at-activity-header-item">
-                    <span class="fbs-at-activity-user">${this.escapeHtml(log.user_name || 'Unknown User')}</span>
-                    <span class="fbs-at-activity-action fbs-at-activity-action-${log.action_color}">
-                        ${this.escapeHtml(log.action_label)}
-                    </span>
+            if (reset) {
+                this.hideNoResults();
+            }
+
+            logs.forEach(log => {
+                const logElement = this.createLogElement(log);
+                feed.appendChild(logElement);
+            });
+
+            this.config.currentOffset += logs.length;
+        },
+
+        // Create individual log element
+        createLogElement(log) {
+            const item = document.createElement('div');
+            item.className = 'fbs-at-activity-item';
+            item.dataset.logId = log.id;
+
+            item.innerHTML = `
+                <div class="fbs-at-activity-checkbox">
+                    <input type="checkbox" class="fbs-at-checkbox fbs-at-log-checkbox" 
+                           value="${log.id}" data-log-id="${log.id}">
                 </div>
-                <div class="fbs-at-activity-details">
-                    ${this.escapeHtml(log.details)}
+                <div class="fbs-at-activity-avatar">
+                    ${log.user_avatar}
                 </div>
-                <div class="fbs-at-activity-meta">
-                    <div class="fbs-at-activity-time">
-                        <span>🕒</span>
-                        <span>${this.escapeHtml(log.formatted_time)}</span>
+                <div class="fbs-at-activity-content">
+                    <div class="fbs-at-activity-header-item">
+                        <span class="fbs-at-activity-user">${this.escapeHtml(log.user_name)}</span>
+                        <span class="fbs-at-activity-action fbs-at-activity-action-${log.action_color}">
+                            ${this.escapeHtml(log.action_label)}
+                        </span>
                     </div>
-                    ${log.user_ip ? `
-                        <div class="fbs-at-activity-ip">
-                            <span>🌐</span>
-                            <span>${this.escapeHtml(log.user_ip)}</span>
+                    <div class="fbs-at-activity-details">
+                        ${this.escapeHtml(log.details)}
+                    </div>
+                    <div class="fbs-at-activity-meta">
+                        <div class="fbs-at-activity-time">
+                            <span>🕒</span>
+                            <span>${this.escapeHtml(log.formatted_time)}</span>
                         </div>
-                    ` : ''}
+                        ${log.user_ip ? `
+                            <div class="fbs-at-activity-ip">
+                                <span>🌐</span>
+                                <span>${this.escapeHtml(log.user_ip)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
-            </div>
-        `;
-        
-        return div;
-    }
+            `;
 
-    toggleLogSelection(logId, checked) {
-        if (checked) {
-            this.selectedLogs.add(logId);
-        } else {
-            this.selectedLogs.delete(logId);
-        }
-        
-        this.updateBulkActions();
-        this.updateSelectAllCheckbox();
-    }
-
-    toggleSelectAll(checked) {
-        const checkboxes = document.querySelectorAll('.fbs-at-log-checkbox');
-        
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = checked;
-            const logId = parseInt(checkbox.value);
-            
-            if (checked) {
-                this.selectedLogs.add(logId);
-            } else {
-                this.selectedLogs.delete(logId);
-            }
-        });
-        
-        this.updateBulkActions();
-    }
-
-    updateSelectAllCheckbox() {
-        const selectAllCheckbox = document.getElementById('fbs-at-select-all');
-        const checkboxes = document.querySelectorAll('.fbs-at-log-checkbox');
-        const checkedBoxes = document.querySelectorAll('.fbs-at-log-checkbox:checked');
-        
-        if (checkedBoxes.length === 0) {
-            selectAllCheckbox.indeterminate = false;
-            selectAllCheckbox.checked = false;
-        } else if (checkedBoxes.length === checkboxes.length) {
-            selectAllCheckbox.indeterminate = false;
-            selectAllCheckbox.checked = true;
-        } else {
-            selectAllCheckbox.indeterminate = true;
-        }
-    }
-
-    updateBulkActions() {
-        const bulkActions = document.getElementById('fbs-at-bulk-actions');
-        const selectedCount = document.getElementById('fbs-at-selected-count');
-        
-        if (this.selectedLogs.size > 0) {
-            bulkActions.style.display = 'flex';
-            selectedCount.textContent = this.selectedLogs.size;
-        } else {
-            bulkActions.style.display = 'none';
-        }
-    }
-
-    async bulkDelete() {
-        if (this.selectedLogs.size === 0) {
-            alert(fbsActivityTracker.strings.selectLogs);
-            return;
-        }
-        
-        if (!confirm(fbsActivityTracker.strings.confirmDelete)) {
-            return;
-        }
-        
-        try {
-            const response = await this.makeAjaxRequest('fbs_at_delete_logs', {
-                log_ids: Array.from(this.selectedLogs)
+            // Bind checkbox event
+            const checkbox = item.querySelector('.fbs-at-log-checkbox');
+            checkbox.addEventListener('change', (e) => {
+                this.handleLogSelection(e.target);
             });
+
+            return item;
+        },
+
+        // Handle individual log selection
+        handleLogSelection(checkbox) {
+            const logId = checkbox.value;
             
-            if (response.success) {
-                alert(response.data.message);
-                this.selectedLogs.clear();
-                this.updateBulkActions();
-                this.loadActivityLogs(true);
-                this.loadStatistics();
+            if (checkbox.checked) {
+                this.config.selectedLogs.add(logId);
             } else {
-                alert(response.data || fbsActivityTracker.strings.error);
+                this.config.selectedLogs.delete(logId);
             }
-        } catch (error) {
-            console.error('Failed to delete logs:', error);
-            alert(fbsActivityTracker.strings.error);
-        }
-    }
 
-    async bulkExport() {
-        if (this.selectedLogs.size === 0) {
-            alert(fbsActivityTracker.strings.selectLogs);
-            return;
-        }
-        
-        // Create a form for export
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = fbsActivityTracker.ajaxUrl;
-        form.target = '_blank';
-        
-        // Add form fields
-        const fields = {
-            action: 'fbs_at_export_logs',
-            nonce: fbsActivityTracker.nonce,
-            log_ids: Array.from(this.selectedLogs).join(',')
-        };
-        
-        Object.keys(fields).forEach(key => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = fields[key];
-            form.appendChild(input);
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    }
+            this.updateBulkActions();
+            this.updateSelectAllState();
+        },
 
-    async exportLogs() {
-        // Create a form for export with current filters
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = fbsActivityTracker.ajaxUrl;
-        form.target = '_blank';
-        
-        // Add form fields
-        const fields = {
-            action: 'fbs_at_export_logs',
-            nonce: fbsActivityTracker.nonce,
-            ...this.currentFilters
-        };
-        
-        Object.keys(fields).forEach(key => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = fields[key];
-            form.appendChild(input);
-        });
-        
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-    }
+        // Toggle select all logs
+        toggleSelectAll(checked) {
+            const checkboxes = document.querySelectorAll('.fbs-at-log-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = checked;
+                const logId = checkbox.value;
+                
+                if (checked) {
+                    this.config.selectedLogs.add(logId);
+                } else {
+                    this.config.selectedLogs.delete(logId);
+                }
+            });
 
-    async refreshData() {
-        await Promise.all([
-            this.loadStatistics(),
-            this.loadActivityLogs(true)
-        ]);
-    }
+            this.updateBulkActions();
+        },
 
-    updateStatistics(stats) {
-        document.getElementById('fbs-at-today-count').textContent = stats.today_count || 0;
-        document.getElementById('fbs-at-active-users').textContent = stats.top_users.length || 0;
-        document.getElementById('fbs-at-total-logs').textContent = stats.total_logs || 0;
-    }
+        // Update select all checkbox state
+        updateSelectAllState() {
+            const selectAllCheckbox = document.getElementById('fbs-at-select-all');
+            const checkboxes = document.querySelectorAll('.fbs-at-log-checkbox');
+            
+            if (!selectAllCheckbox || checkboxes.length === 0) return;
 
-    showLoading() {
-        document.getElementById('fbs-at-loading').style.display = 'block';
-    }
-
-    hideLoading() {
-        document.getElementById('fbs-at-loading').style.display = 'none';
-    }
-
-    showNoResults() {
-        document.getElementById('fbs-at-no-results').style.display = 'block';
-    }
-
-    hideNoResults() {
-        document.getElementById('fbs-at-no-results').style.display = 'none';
-    }
-
-    showError(message) {
-        // Simple error display - could be enhanced with a proper notification system
-        alert(message);
-    }
-
-    clearActivityFeed() {
-        document.getElementById('fbs-at-activity-feed').innerHTML = '';
-    }
-
-    updateLoadMoreButton() {
-        const loadMore = document.getElementById('fbs-at-load-more');
-        loadMore.style.display = this.hasMore ? 'block' : 'none';
-    }
-
-    setupInfiniteScroll() {
-        const feed = document.getElementById('fbs-at-activity-feed');
-        
-        feed.addEventListener('scroll', () => {
-            if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 100) {
-                this.loadMore();
+            const checkedCount = document.querySelectorAll('.fbs-at-log-checkbox:checked').length;
+            
+            if (checkedCount === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (checkedCount === checkboxes.length) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
             }
-        });
+        },
+
+        // Update bulk actions visibility
+        updateBulkActions() {
+            const bulkActions = document.getElementById('fbs-at-bulk-actions');
+            const selectedCount = document.getElementById('fbs-at-selected-count');
+            
+            if (this.config.selectedLogs.size > 0) {
+                bulkActions.style.display = 'flex';
+                if (selectedCount) {
+                    selectedCount.textContent = this.config.selectedLogs.size;
+                }
+            } else {
+                bulkActions.style.display = 'none';
+            }
+        },
+
+        // Get current filter values
+        getCurrentFilters() {
+            const filters = {};
+            
+            const userFilter = document.getElementById('fbs-at-user-filter');
+            if (userFilter?.value) filters.user_id = userFilter.value;
+
+            const actionFilter = document.getElementById('fbs-at-action-filter');
+            if (actionFilter?.value) filters.action_type = actionFilter.value;
+
+            const objectFilter = document.getElementById('fbs-at-object-filter');
+            if (objectFilter?.value) filters.object_type = objectFilter.value;
+
+            const dateFrom = document.getElementById('fbs-at-date-from');
+            if (dateFrom?.value) filters.date_from = dateFrom.value;
+
+            const dateTo = document.getElementById('fbs-at-date-to');
+            if (dateTo?.value) filters.date_to = dateTo.value;
+
+            const search = document.getElementById('fbs-at-search');
+            if (search?.value) filters.search = search.value;
+
+            return filters;
+        },
+
+        // Apply filters
+        applyFilters() {
+            this.loadActivityLogs(true);
+        },
+
+        // Clear all filters
+        clearFilters() {
+            document.getElementById('fbs-at-user-filter').value = '';
+            document.getElementById('fbs-at-action-filter').value = '';
+            document.getElementById('fbs-at-object-filter').value = '';
+            document.getElementById('fbs-at-date-range').value = '';
+            document.getElementById('fbs-at-date-from').value = '';
+            document.getElementById('fbs-at-date-to').value = '';
+            document.getElementById('fbs-at-search').value = '';
+            
+            document.getElementById('fbs-at-custom-date-row').style.display = 'none';
+            
+            this.loadActivityLogs(true);
+        },
+
+        // Handle date range filter change
+        handleDateRangeChange(value) {
+            const customDateRow = document.getElementById('fbs-at-custom-date-row');
+            const dateFrom = document.getElementById('fbs-at-date-from');
+            const dateTo = document.getElementById('fbs-at-date-to');
+            
+            if (value === 'custom') {
+                customDateRow.style.display = 'flex';
+                return;
+            }
+            
+            customDateRow.style.display = 'none';
+            
+            if (!value) {
+                dateFrom.value = '';
+                dateTo.value = '';
+                return;
+            }
+
+            const today = new Date();
+            let fromDate, toDate;
+
+            switch (value) {
+                case 'today':
+                    fromDate = toDate = new Date(today);
+                    break;
+                case 'yesterday':
+                    fromDate = toDate = new Date(today);
+                    fromDate.setDate(today.getDate() - 1);
+                    break;
+                case 'last7days':
+                    fromDate = new Date(today);
+                    fromDate.setDate(today.getDate() - 7);
+                    toDate = new Date(today);
+                    break;
+                case 'last30days':
+                    fromDate = new Date(today);
+                    fromDate.setDate(today.getDate() - 30);
+                    toDate = new Date(today);
+                    break;
+                case 'thismonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    toDate = new Date(today);
+                    break;
+                case 'lastmonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+            }
+
+            if (fromDate && toDate) {
+                dateFrom.value = this.formatDate(fromDate);
+                dateTo.value = this.formatDate(toDate);
+            }
+        },
+
+        // Format date for input
+        formatDate(date) {
+            return date.toISOString().split('T')[0];
+        },
+
+        // Load more logs
+        loadMore() {
+            this.loadActivityLogs(false);
+        },
+
+        // Update load more button
+        updateLoadMoreButton(hasMore) {
+            const loadMore = document.getElementById('fbs-at-load-more');
+            if (loadMore) {
+                loadMore.style.display = hasMore ? 'block' : 'none';
+            }
+        },
+
+        // Bulk delete selected logs
+        async bulkDelete() {
+            if (this.config.selectedLogs.size === 0) {
+                alert(this.config.strings.selectLogs);
+                return;
+            }
+
+            if (!confirm(this.config.strings.confirmDelete)) {
+                return;
+            }
+
+            try {
+                const response = await this.makeAjaxRequest(this.config.actions.deleteLogs, {
+                    log_ids: Array.from(this.config.selectedLogs)
+                });
+
+                if (response.success) {
+                    this.showSuccess(response.data.message);
+                    this.config.selectedLogs.clear();
+                    this.updateBulkActions();
+                    this.loadActivityLogs(true);
+                    this.loadStatistics();
+                } else {
+                    this.showError(response.data || this.config.strings.error);
+                }
+            } catch (error) {
+                console.error('Failed to delete logs:', error);
+                this.showError(this.config.strings.error);
+            }
+        },
+
+        // Bulk export selected logs
+        async bulkExport() {
+            if (this.config.selectedLogs.size === 0) {
+                alert(this.config.strings.selectLogs);
+                return;
+            }
+
+            const filters = this.getCurrentFilters();
+            filters.log_ids = Array.from(this.config.selectedLogs);
+            
+            this.exportLogs(filters);
+        },
+
+        // Export all logs
+        exportAll() {
+            const filters = this.getCurrentFilters();
+            this.exportLogs(filters);
+        },
+
+        // Export logs
+        exportLogs(filters) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = this.config.ajaxUrl;
+            form.target = '_blank';
+
+            // Add nonce
+            const nonceInput = document.createElement('input');
+            nonceInput.type = 'hidden';
+            nonceInput.name = 'nonce';
+            nonceInput.value = this.config.nonce;
+            form.appendChild(nonceInput);
+
+            // Add action
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = this.config.actions.exportLogs;
+            form.appendChild(actionInput);
+
+            // Add filters
+            Object.keys(filters).forEach(key => {
+                if (filters[key] !== undefined && filters[key] !== '') {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = Array.isArray(filters[key]) ? JSON.stringify(filters[key]) : filters[key];
+                    form.appendChild(input);
+                }
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            this.showSuccess(this.config.strings.exportSuccess);
+        },
+
+        // Refresh data
+        refresh() {
+            this.loadStatistics();
+            this.loadActivityLogs(true);
+        },
+
+        // Setup infinite scroll
+        setupInfiniteScroll() {
+            const feed = document.getElementById('fbs-at-activity-feed');
+            if (!feed) return;
+
+            feed.addEventListener('scroll', () => {
+                if (this.config.isLoading) return;
+
+                const { scrollTop, scrollHeight, clientHeight } = feed;
+                const threshold = 100;
+
+                if (scrollTop + clientHeight >= scrollHeight - threshold) {
+                    this.loadMore();
+                }
+            });
+        },
+
+        // Make AJAX request
+        async makeAjaxRequest(action, data) {
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('nonce', this.config.nonce);
+
+            Object.keys(data).forEach(key => {
+                if (data[key] !== undefined && data[key] !== '') {
+                    formData.append(key, Array.isArray(data[key]) ? JSON.stringify(data[key]) : data[key]);
+                }
+            });
+
+            const response = await fetch(this.config.ajaxUrl, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        },
+
+        // Show loading state
+        showLoading() {
+            const loading = document.getElementById('fbs-at-loading');
+            if (loading) {
+                loading.style.display = 'flex';
+            }
+        },
+
+        // Hide loading state
+        hideLoading() {
+            const loading = document.getElementById('fbs-at-loading');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        },
+
+        // Show no results
+        showNoResults() {
+            const noResults = document.getElementById('fbs-at-no-results');
+            if (noResults) {
+                noResults.style.display = 'flex';
+            }
+        },
+
+        // Hide no results
+        hideNoResults() {
+            const noResults = document.getElementById('fbs-at-no-results');
+            if (noResults) {
+                noResults.style.display = 'none';
+            }
+        },
+
+        // Clear activity feed
+        clearActivityFeed() {
+            const feed = document.getElementById('fbs-at-activity-feed');
+            if (feed) {
+                feed.innerHTML = '';
+            }
+            this.config.selectedLogs.clear();
+            this.updateBulkActions();
+        },
+
+        // Show success message
+        showSuccess(message) {
+            this.showNotification(message, 'success');
+        },
+
+        // Show error message
+        showError(message) {
+            this.showNotification(message, 'error');
+        },
+
+        // Show notification
+        showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fbs-at-notification fbs-at-notification-${type}`;
+            notification.innerHTML = `
+                <div class="fbs-at-notification-content">
+                    <span class="fbs-at-notification-message">${this.escapeHtml(message)}</span>
+                    <button class="fbs-at-notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+                </div>
+            `;
+
+            // Add to page
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        },
+
+        // Escape HTML to prevent XSS
+        escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => FBSActivityTracker.init());
+    } else {
+        FBSActivityTracker.init();
     }
 
-    async makeAjaxRequest(action, data) {
-        const formData = new FormData();
-        formData.append('action', action);
-        formData.append('nonce', fbsActivityTracker.nonce);
-        
-        Object.keys(data).forEach(key => {
-            if (data[key] !== null && data[key] !== undefined) {
-                formData.append(key, data[key]);
-            }
-        });
-        
-        const response = await fetch(fbsActivityTracker.ajaxUrl, {
-            method: 'POST',
-            body: formData
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // Add notification styles
+    const notificationStyles = `
+        <style>
+        .fbs-at-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: fbs-at-slide-in 0.3s ease-out;
         }
         
-        return await response.json();
-    }
+        .fbs-at-notification-success {
+            background: #2a9d8f;
+            color: white;
+        }
+        
+        .fbs-at-notification-error {
+            background: #e63946;
+            color: white;
+        }
+        
+        .fbs-at-notification-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+        
+        .fbs-at-notification-message {
+            flex: 1;
+            margin-right: 1rem;
+        }
+        
+        .fbs-at-notification-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        @keyframes fbs-at-slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        </style>
+    `;
 
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-}
+    document.head.insertAdjacentHTML('beforeend', notificationStyles);
 
-// Initialize the application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.fbsActivityTrackerApp = new FBSActivityTracker();
-});
+})();

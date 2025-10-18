@@ -420,7 +420,7 @@
 }
 
 .fbs-at-activity-item:hover {
-    background: var(--fbs-at-gray-100);
+    background: var(--fbs-at-gray-50);
 }
 
 .fbs-at-activity-item:last-child {
@@ -500,16 +500,16 @@
 }
 
 .fbs-at-activity-details {
-    color: var(--fbs-at-gray-600);
-    font-size: 0.875rem;
+    color: var(--fbs-at-gray-700);
     margin-bottom: 0.5rem;
+    line-height: 1.5;
 }
 
 .fbs-at-activity-meta {
     display: flex;
     align-items: center;
     gap: 1rem;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--fbs-at-gray-500);
 }
 
@@ -527,8 +527,11 @@
 
 /* Loading States */
 .fbs-at-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     padding: 3rem;
-    text-align: center;
     color: var(--fbs-at-gray-600);
 }
 
@@ -539,7 +542,7 @@
     border-top: 2px solid var(--fbs-at-primary);
     border-radius: 50%;
     animation: fbs-at-spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
+    margin-bottom: 1rem;
 }
 
 @keyframes fbs-at-spin {
@@ -549,13 +552,17 @@
 
 .fbs-at-loading-text {
     font-size: 0.875rem;
+    font-weight: 500;
 }
 
 /* No Results */
 .fbs-at-no-results {
-    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
     text-align: center;
-    color: var(--fbs-at-gray-600);
 }
 
 .fbs-at-no-results-icon {
@@ -572,8 +579,9 @@
 }
 
 .fbs-at-no-results-text {
+    color: var(--fbs-at-gray-500);
     margin: 0;
-    font-size: 0.875rem;
+    max-width: 400px;
 }
 
 /* Load More */
@@ -590,55 +598,41 @@
         gap: 1rem;
         text-align: center;
     }
-    
+
     .fbs-at-header-actions {
         width: 100%;
         justify-content: center;
     }
-    
+
     .fbs-at-stats-grid {
         grid-template-columns: 1fr;
         padding: 1rem;
     }
-    
+
     .fbs-at-filters {
         margin: 0 1rem 1rem 1rem;
     }
-    
+
     .fbs-at-filters-row {
         grid-template-columns: 1fr;
     }
-    
-    .fbs-at-filter-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .fbs-at-bulk-actions {
-        flex-direction: column;
-        gap: 1rem;
-        margin: 0 1rem 1rem 1rem;
-    }
-    
-    .fbs-at-bulk-buttons {
-        justify-content: center;
-    }
-    
+
     .fbs-at-activity-container {
         margin: 0 1rem 1rem 1rem;
     }
-    
-    .fbs-at-activity-header {
+
+    .fbs-at-bulk-actions {
+        margin: 0 1rem 1rem 1rem;
         flex-direction: column;
         gap: 1rem;
-        align-items: flex-start;
+        text-align: center;
     }
-    
+
     .fbs-at-activity-item {
         flex-direction: column;
-        gap: 0.75rem;
+        align-items: flex-start;
     }
-    
+
     .fbs-at-activity-meta {
         flex-direction: column;
         align-items: flex-start;
@@ -647,38 +641,42 @@
 }
 
 @media (max-width: 480px) {
-    .fbs-at-header {
-        padding: 1rem;
-    }
-    
     .fbs-at-title {
         font-size: 1.5rem;
     }
-    
+
     .fbs-at-btn {
-        padding: 0.625rem 1rem;
+        padding: 0.5rem 1rem;
         font-size: 0.8rem;
     }
-    
+
     .fbs-at-stat-card {
         padding: 1rem;
     }
-    
+
     .fbs-at-stat-value {
         font-size: 1.5rem;
     }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fbs-at-white: #1a1a1a;
+        --fbs-at-gray-100: #2d2d2d;
+        --fbs-at-gray-200: #404040;
+        --fbs-at-gray-300: #525252;
+        --fbs-at-gray-400: #737373;
+        --fbs-at-gray-500: #a3a3a3;
+        --fbs-at-gray-600: #d4d4d4;
+        --fbs-at-gray-700: #e5e5e5;
+        --fbs-at-gray-800: #f5f5f5;
+        --fbs-at-gray-900: #ffffff;
+        --fbs-at-dark: #ffffff;
     }
 }
 
-/* Focus styles for keyboard navigation */
+/* Accessibility */
 .fbs-at-btn:focus,
 .fbs-at-filter-select:focus,
 .fbs-at-filter-input:focus,
@@ -687,14 +685,22 @@
     outline-offset: 2px;
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    :root {
-        --fbs-at-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        --fbs-at-box-shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.3);
+/* Print styles */
+@media print {
+    .fbs-at-header-actions,
+    .fbs-at-filters,
+    .fbs-at-bulk-actions,
+    .fbs-at-activity-controls,
+    .fbs-at-load-more {
+        display: none !important;
     }
-    
-    .fbs-at-activity-item:hover {
-        background: var(--fbs-at-gray-200);
+
+    .fbs-at-admin-container {
+        background: white !important;
+    }
+
+    .fbs-at-activity-item {
+        break-inside: avoid;
+        border-bottom: 1px solid #ccc !important;
     }
 }
