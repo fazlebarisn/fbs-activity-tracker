@@ -105,6 +105,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'user',
             'object_id' => $user->ID,
             'object_name' => $user->display_name,
+            // translators: %s is the user's IP address
             'details' => sprintf(__('User logged in from IP: %s', 'fbs-activity-tracker'), $this->get_user_ip()),
             'timestamp' => current_time('mysql')
         ));
@@ -151,7 +152,8 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'user',
             'object_id' => 0,
             'object_name' => sanitize_text_field($username),
-            'details' => sprintf(__('Failed login attempt for username: %s from IP: %s', 'fbs-activity-tracker'), $username, $this->get_user_ip()),
+            // translators: %1$s is the username, %2$s is the IP address
+            'details' => sprintf(__('Failed login attempt for username: %1$s from IP: %2$s', 'fbs-activity-tracker'), $username, $this->get_user_ip()),
             'timestamp' => current_time('mysql')
         ));
     }
@@ -179,30 +181,36 @@ class FBS_Activity_Tracker_Logger {
             case 'publish':
                 if ($old_status === 'new' || $old_status === 'auto-draft') {
                     $action_type = 'post_created';
-                    $details = sprintf(__('Created new %s: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+                    // translators: %1$s is the post type, %2$s is the post title
+                    $details = sprintf(__('Created new %1$s: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
                 } else {
                     $action_type = 'post_published';
-                    $details = sprintf(__('Published %s: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+                    // translators: %1$s is the post type, %2$s is the post title
+                    $details = sprintf(__('Published %1$s: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
                 }
                 break;
             case 'draft':
                 $action_type = 'post_drafted';
-                $details = sprintf(__('Moved %s to draft: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+                // translators: %1$s is the post type, %2$s is the post title
+                $details = sprintf(__('Moved %1$s to draft: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
                 break;
             case 'trash':
                 $action_type = 'post_trashed';
-                $details = sprintf(__('Trashed %s: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+                // translators: %1$s is the post type, %2$s is the post title
+                $details = sprintf(__('Trashed %1$s: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
                 break;
             case 'private':
                 $action_type = 'post_private';
-                $details = sprintf(__('Made %s private: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+                // translators: %1$s is the post type, %2$s is the post title
+                $details = sprintf(__('Made %1$s private: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
                 break;
         }
 
         // Also log updates to published posts
         if ($new_status === 'publish' && $old_status === 'publish') {
             $action_type = 'post_updated';
-            $details = sprintf(__('Updated %s: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
+            // translators: %1$s is the post type, %2$s is the post title
+            $details = sprintf(__('Updated %1$s: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title);
         }
 
         if ($action_type) {
@@ -246,7 +254,8 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => $post->post_type,
             'object_id' => $post->ID,
             'object_name' => $post->post_title,
-            'details' => sprintf(__('Permanently deleted %s: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title),
+            // translators: %1$s is the post type, %2$s is the post title
+            'details' => sprintf(__('Permanently deleted %1$s: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title),
             'timestamp' => current_time('mysql')
         ));
     }
@@ -276,7 +285,8 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => $post->post_type,
             'object_id' => $post->ID,
             'object_name' => $post->post_title,
-            'details' => sprintf(__('Restored %s from trash: %s', 'fbs-activity-tracker'), $post->post_type, $post->post_title),
+            // translators: %1$s is the post type, %2$s is the post title
+            'details' => sprintf(__('Restored %1$s from trash: %2$s', 'fbs-activity-tracker'), $post->post_type, $post->post_title),
             'timestamp' => current_time('mysql')
         ));
     }
@@ -301,6 +311,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'plugin',
             'object_id' => 0,
             'object_name' => $plugin_name,
+            // translators: %s is the plugin name
             'details' => sprintf(__('Activated plugin: %s', 'fbs-activity-tracker'), $plugin_name),
             'timestamp' => current_time('mysql')
         ));
@@ -326,6 +337,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'plugin',
             'object_id' => 0,
             'object_name' => $plugin_name,
+            // translators: %s is the plugin name
             'details' => sprintf(__('Deactivated plugin: %s', 'fbs-activity-tracker'), $plugin_name),
             'timestamp' => current_time('mysql')
         ));
@@ -350,6 +362,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'theme',
             'object_id' => 0,
             'object_name' => $new_name,
+            // translators: %s is the theme name
             'details' => sprintf(__('Switched to theme: %s', 'fbs-activity-tracker'), $new_name),
             'timestamp' => current_time('mysql')
         ));
@@ -381,6 +394,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'user',
             'object_id' => $user_id,
             'object_name' => $user->display_name,
+            // translators: %s is the user's display name
             'details' => sprintf(__('Updated profile for user: %s', 'fbs-activity-tracker'), $user->display_name),
             'timestamp' => current_time('mysql')
         ));
@@ -409,6 +423,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'user',
             'object_id' => $user_id,
             'object_name' => $user->display_name,
+            // translators: %s is the user's display name
             'details' => sprintf(__('New user registered: %s', 'fbs-activity-tracker'), $user->display_name),
             'timestamp' => current_time('mysql')
         ));
@@ -453,6 +468,7 @@ class FBS_Activity_Tracker_Logger {
             'object_type' => 'option',
             'object_id' => 0,
             'object_name' => $option_name,
+            // translators: %s is the option name
             'details' => sprintf(__('Updated WordPress setting: %s', 'fbs-activity-tracker'), $option_name),
             'timestamp' => current_time('mysql')
         ));
@@ -482,7 +498,7 @@ class FBS_Activity_Tracker_Logger {
         
         foreach ($ip_keys as $key) {
             if (array_key_exists($key, $_SERVER) === true) {
-                foreach (explode(',', $_SERVER[$key]) as $ip) {
+                foreach (explode(',', sanitize_text_field(wp_unslash($_SERVER[$key]))) as $ip) {
                     $ip = trim($ip);
                     
                     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false) {
@@ -492,7 +508,7 @@ class FBS_Activity_Tracker_Logger {
             }
         }
         
-        return isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '0.0.0.0';
     }
 
     /**

@@ -76,13 +76,13 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_activity_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
-            wp_die(__('Security check failed.', 'fbs-activity-tracker'));
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+            wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
+            wp_die(esc_html__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
         }
 
         // Sanitize and prepare filters
@@ -93,23 +93,23 @@ class FBS_Activity_Tracker_Ajax {
         }
         
         if (!empty($_POST['action_type'])) {
-            $filters['action_type'] = sanitize_text_field($_POST['action_type']);
+            $filters['action_type'] = sanitize_text_field(wp_unslash($_POST['action_type']));
         }
         
         if (!empty($_POST['object_type'])) {
-            $filters['object_type'] = sanitize_text_field($_POST['object_type']);
+            $filters['object_type'] = sanitize_text_field(wp_unslash($_POST['object_type']));
         }
         
         if (!empty($_POST['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_POST['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_POST['date_from']));
         }
         
         if (!empty($_POST['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_POST['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_POST['date_to']));
         }
         
         if (!empty($_POST['search'])) {
-            $filters['search'] = sanitize_text_field($_POST['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_POST['search']));
         }
 
         // Pagination
@@ -156,13 +156,13 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_statistics() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
-            wp_die(__('Security check failed.', 'fbs-activity-tracker'));
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+            wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
+            wp_die(esc_html__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
         }
 
         $stats = $this->database->get_statistics();
@@ -205,30 +205,52 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function delete_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
-            wp_die(__('Security check failed.', 'fbs-activity-tracker'));
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+            wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
+            wp_die(esc_html__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
         }
 
-        $log_ids = $_POST['log_ids'] ?? array();
+        $log_ids = array();
+        
+        // Check if log_ids is sent as an array (log_ids[0], log_ids[1], etc.)
+        if (isset($_POST['log_ids']) && is_array($_POST['log_ids'])) {
+            $log_ids = array_map('intval', wp_unslash($_POST['log_ids']));
+        }
+        // Check if log_ids is sent as individual parameters (log_ids[0], log_ids[1], etc.)
+        elseif (isset($_POST['log_ids[0]'])) {
+            $log_ids = array();
+            $i = 0;
+            while (isset($_POST["log_ids[$i]"])) {
+                $log_ids[] = intval(wp_unslash($_POST["log_ids[$i]"]));
+                $i++;
+            }
+        }
+        // Check if log_ids is sent as a JSON string
+        elseif (isset($_POST['log_ids']) && is_string($_POST['log_ids'])) {
+            $decoded_log_ids = json_decode(sanitize_text_field(wp_unslash($_POST['log_ids'])), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_log_ids)) {
+                $log_ids = $decoded_log_ids;
+            }
+        }
         
         if (empty($log_ids) || !is_array($log_ids)) {
-            wp_send_json_error(__('No logs selected for deletion.', 'fbs-activity-tracker'));
+            wp_send_json_error(esc_html__('No logs selected for deletion.', 'fbs-activity-tracker'));
         }
 
         $deleted_count = $this->database->delete_logs($log_ids);
 
         if ($deleted_count !== false) {
             wp_send_json_success(array(
-                'message' => sprintf(__('%d logs deleted successfully.', 'fbs-activity-tracker'), $deleted_count),
+                // translators: %d is the number of logs deleted
+                'message' => sprintf(esc_html__('%d logs deleted successfully.', 'fbs-activity-tracker'), $deleted_count),
                 'deleted_count' => $deleted_count
             ));
         } else {
-            wp_send_json_error(__('Failed to delete logs.', 'fbs-activity-tracker'));
+            wp_send_json_error(esc_html__('Failed to delete logs.', 'fbs-activity-tracker'));
         }
     }
 
@@ -239,13 +261,13 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function export_logs() {
         // Verify nonce
-        if (!wp_verify_nonce($_POST['nonce'] ?? '', 'fbs_at_nonce')) {
-            wp_die(__('Security check failed.', 'fbs-activity-tracker'));
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+            wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
         // Check user capabilities
         if (!current_user_can('manage_options')) {
-            wp_die(__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
+            wp_die(esc_html__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
         }
 
         // Prepare filters (same as get_activity_logs)
@@ -256,23 +278,23 @@ class FBS_Activity_Tracker_Ajax {
         }
         
         if (!empty($_POST['action_type'])) {
-            $filters['action_type'] = sanitize_text_field($_POST['action_type']);
+            $filters['action_type'] = sanitize_text_field(wp_unslash($_POST['action_type']));
         }
         
         if (!empty($_POST['object_type'])) {
-            $filters['object_type'] = sanitize_text_field($_POST['object_type']);
+            $filters['object_type'] = sanitize_text_field(wp_unslash($_POST['object_type']));
         }
         
         if (!empty($_POST['date_from'])) {
-            $filters['date_from'] = sanitize_text_field($_POST['date_from']);
+            $filters['date_from'] = sanitize_text_field(wp_unslash($_POST['date_from']));
         }
         
         if (!empty($_POST['date_to'])) {
-            $filters['date_to'] = sanitize_text_field($_POST['date_to']);
+            $filters['date_to'] = sanitize_text_field(wp_unslash($_POST['date_to']));
         }
         
         if (!empty($_POST['search'])) {
-            $filters['search'] = sanitize_text_field($_POST['search']);
+            $filters['search'] = sanitize_text_field(wp_unslash($_POST['search']));
         }
 
         // Get all logs for export (no pagination)
@@ -303,7 +325,7 @@ class FBS_Activity_Tracker_Ajax {
         }
 
         // Set headers for download
-        $filename = 'fbs-activity-logs-' . date('Y-m-d-H-i-s') . '.json';
+        $filename = 'fbs-activity-logs-' . gmdate('Y-m-d-H-i-s') . '.json';
         
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
@@ -327,15 +349,18 @@ class FBS_Activity_Tracker_Ajax {
         $diff = $now - $time;
 
         if ($diff < 60) {
-            return __('Just now', 'fbs-activity-tracker');
+            return esc_html__('Just now', 'fbs-activity-tracker');
         } elseif ($diff < 3600) {
             $minutes = floor($diff / 60);
+            // translators: %d is the number of minutes
             return sprintf(_n('%d minute ago', '%d minutes ago', $minutes, 'fbs-activity-tracker'), $minutes);
         } elseif ($diff < 86400) {
             $hours = floor($diff / 3600);
+            // translators: %d is the number of hours
             return sprintf(_n('%d hour ago', '%d hours ago', $hours, 'fbs-activity-tracker'), $hours);
         } elseif ($diff < 2592000) {
             $days = floor($diff / 86400);
+            // translators: %d is the number of days
             return sprintf(_n('%d day ago', '%d days ago', $days, 'fbs-activity-tracker'), $days);
         } else {
             return date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $time);
@@ -352,23 +377,23 @@ class FBS_Activity_Tracker_Ajax {
      */
     private function get_action_label($action_type) {
         $labels = array(
-            'user_login' => __('User Login', 'fbs-activity-tracker'),
-            'user_logout' => __('User Logout', 'fbs-activity-tracker'),
-            'login_failed' => __('Login Failed', 'fbs-activity-tracker'),
-            'post_created' => __('Post Created', 'fbs-activity-tracker'),
-            'post_updated' => __('Post Updated', 'fbs-activity-tracker'),
-            'post_published' => __('Post Published', 'fbs-activity-tracker'),
-            'post_drafted' => __('Post Drafted', 'fbs-activity-tracker'),
-            'post_trashed' => __('Post Trashed', 'fbs-activity-tracker'),
-            'post_untrashed' => __('Post Restored', 'fbs-activity-tracker'),
-            'post_deleted' => __('Post Deleted', 'fbs-activity-tracker'),
-            'post_private' => __('Post Made Private', 'fbs-activity-tracker'),
-            'plugin_activated' => __('Plugin Activated', 'fbs-activity-tracker'),
-            'plugin_deactivated' => __('Plugin Deactivated', 'fbs-activity-tracker'),
-            'theme_switched' => __('Theme Switched', 'fbs-activity-tracker'),
-            'user_profile_updated' => __('Profile Updated', 'fbs-activity-tracker'),
-            'user_registered' => __('User Registered', 'fbs-activity-tracker'),
-            'option_updated' => __('Setting Updated', 'fbs-activity-tracker')
+            'user_login' => esc_html__('User Login', 'fbs-activity-tracker'),
+            'user_logout' => esc_html__('User Logout', 'fbs-activity-tracker'),
+            'login_failed' => esc_html__('Login Failed', 'fbs-activity-tracker'),
+            'post_created' => esc_html__('Post Created', 'fbs-activity-tracker'),
+            'post_updated' => esc_html__('Post Updated', 'fbs-activity-tracker'),
+            'post_published' => esc_html__('Post Published', 'fbs-activity-tracker'),
+            'post_drafted' => esc_html__('Post Drafted', 'fbs-activity-tracker'),
+            'post_trashed' => esc_html__('Post Trashed', 'fbs-activity-tracker'),
+            'post_untrashed' => esc_html__('Post Restored', 'fbs-activity-tracker'),
+            'post_deleted' => esc_html__('Post Deleted', 'fbs-activity-tracker'),
+            'post_private' => esc_html__('Post Made Private', 'fbs-activity-tracker'),
+            'plugin_activated' => esc_html__('Plugin Activated', 'fbs-activity-tracker'),
+            'plugin_deactivated' => esc_html__('Plugin Deactivated', 'fbs-activity-tracker'),
+            'theme_switched' => esc_html__('Theme Switched', 'fbs-activity-tracker'),
+            'user_profile_updated' => esc_html__('Profile Updated', 'fbs-activity-tracker'),
+            'user_registered' => esc_html__('User Registered', 'fbs-activity-tracker'),
+            'option_updated' => esc_html__('Setting Updated', 'fbs-activity-tracker')
         );
 
         return $labels[$action_type] ?? ucwords(str_replace('_', ' ', $action_type));

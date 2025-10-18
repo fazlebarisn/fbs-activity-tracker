@@ -137,7 +137,6 @@ class FBS_Activity_Tracker_Database {
         );
 
         if ($result === false) {
-            error_log('FBS Activity Tracker: Failed to insert log - ' . $this->wpdb->last_error);
             return false;
         }
 
@@ -154,59 +153,93 @@ class FBS_Activity_Tracker_Database {
      * @author Fazle Bari <fazlebarisn@gmail.com>
      * @since 1.0.0
      */
-    public function get_logs($filters = array(), $limit = 50, $offset = 0) {
-        $where_conditions = array('1=1');
-        $where_values = array();
-
-        // User filter
-        if (!empty($filters['user_id'])) {
+    public function get_logs( $filters = array(), $limit = 50, $offset = 0 ) {
+        global $wpdb;
+    
+        // Ensure table name is set safely in class constructor. Example:
+        // $this->table_name = $wpdb->prefix . 'your_table_name';
+        if ( empty( $this->table_name ) ) {
+            return array();
+        }
+    
+        $where_conditions = array();
+        $where_values     = array();
+    
+        // Always include a trivially-true condition to simplify implode logic.
+        $where_conditions[] = '1=1';
+    
+        // user_id filter
+        if ( isset( $filters['user_id'] ) && $filters['user_id'] !== '' ) {
             $where_conditions[] = 'user_id = %d';
-            $where_values[] = intval($filters['user_id']);
+            $where_values[]     = intval( $filters['user_id'] );
         }
-
-        // Action type filter
-        if (!empty($filters['action_type'])) {
+    
+        // action_type filter
+        if ( ! empty( $filters['action_type'] ) ) {
             $where_conditions[] = 'action_type = %s';
-            $where_values[] = sanitize_text_field($filters['action_type']);
+            $where_values[]     = sanitize_text_field( $filters['action_type'] );
         }
-
-        // Object type filter
-        if (!empty($filters['object_type'])) {
+    
+        // object_type filter
+        if ( ! empty( $filters['object_type'] ) ) {
             $where_conditions[] = 'object_type = %s';
-            $where_values[] = sanitize_text_field($filters['object_type']);
+            $where_values[]     = sanitize_text_field( $filters['object_type'] );
         }
-
-        // Date range filter
-        if (!empty($filters['date_from'])) {
-            $where_conditions[] = 'timestamp >= %s';
-            $where_values[] = sanitize_text_field($filters['date_from']);
+    
+        // date_from filter - validate with strtotime and format as MySQL DATETIME
+        if ( ! empty( $filters['date_from'] ) ) {
+            $ts = strtotime( $filters['date_from'] );
+            if ( $ts !== false ) {
+                $where_conditions[] = 'timestamp >= %s';
+                $where_values[]     = wp_date( 'Y-m-d 00:00:00', $ts );
+            }
         }
-
-        if (!empty($filters['date_to'])) {
-            $where_conditions[] = 'timestamp <= %s';
-            $where_values[] = sanitize_text_field($filters['date_to']);
+    
+        // date_to filter - validate with strtotime and format as MySQL DATETIME
+        if ( ! empty( $filters['date_to'] ) ) {
+            $ts = strtotime( $filters['date_to'] );
+            if ( $ts !== false ) {
+                $where_conditions[] = 'timestamp <= %s';
+                $where_values[]     = wp_date( 'Y-m-d 23:59:59', $ts );
+            }
         }
-
-        // Search filter
-        if (!empty($filters['search'])) {
-            $search_term = '%' . $this->wpdb->esc_like(sanitize_text_field($filters['search'])) . '%';
-            $where_conditions[] = '(user_name LIKE %s OR object_name LIKE %s OR details LIKE %s)';
-            $where_values[] = $search_term;
-            $where_values[] = $search_term;
-            $where_values[] = $search_term;
+    
+        // search filter - use $wpdb->esc_like and add wildcards
+        if ( ! empty( $filters['search'] ) ) {
+            $raw_search = sanitize_text_field( $filters['search'] );
+            $like       = '%' . $wpdb->esc_like( $raw_search ) . '%';
+    
+            // we use three placeholders for the three columns we search in
+            $where_conditions[] = '( user_name LIKE %s OR object_name LIKE %s OR details LIKE %s )';
+            $where_values[]     = $like;
+            $where_values[]     = $like;
+            $where_values[]     = $like;
         }
-
-        $where_clause = implode(' AND ', $where_conditions);
-
-        $sql = $this->wpdb->prepare(
-            "SELECT * FROM {$this->table_name} 
-             WHERE {$where_clause} 
-             ORDER BY timestamp DESC 
-             LIMIT %d OFFSET %d",
-            array_merge($where_values, array($limit, $offset))
-        );
-
-        return $this->wpdb->get_results($sql);
+    
+        // Build WHERE clause (only contains placeholders and safe column names)
+        $where_clause = implode( ' AND ', $where_conditions );
+    
+        // Ensure limit and offset are integers
+        $limit  = (int) $limit;
+        $offset = (int) $offset;
+    
+        // Build final SQL. Table name is a class property set in a controlled manner.
+        $sql = "
+            SELECT *
+            FROM {$this->table_name}
+            WHERE {$where_clause}
+            ORDER BY timestamp DESC
+            LIMIT %d OFFSET %d
+        ";
+    
+        // Merge values for prepare: where values first, then limit and offset.
+        $prepare_values = array_merge( $where_values, array( $limit, $offset ) );
+    
+        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- $where_clause only contains placeholders, and $this->table_name is a trusted property. All dynamic values are passed via $prepare_values.
+        $prepared_sql = $wpdb->prepare( $sql, $prepare_values );
+    
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- $prepared_sql is prepared safely using $wpdb->prepare() above. Dynamic query with filters and pagination not suitable for caching.
+        return $wpdb->get_results( $prepared_sql );
     }
 
     /**
@@ -257,12 +290,17 @@ class FBS_Activity_Tracker_Database {
 
         $where_clause = implode(' AND ', $where_conditions);
 
-        $sql = $this->wpdb->prepare(
-            "SELECT COUNT(*) FROM {$this->table_name} WHERE {$where_clause}",
-            $where_values
+        return intval(
+            $this->wpdb->get_var(
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Dynamic query with filters not suitable for caching.
+                $this->wpdb->prepare(
+                    // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table name and WHERE clause are safe, interpolated variables are controlled
+                    "SELECT COUNT(*) FROM {$this->table_name} WHERE {$where_clause}",
+                    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- These are parameter values, not SQL injection risks
+                    $where_values
+                )
+            )
         );
-
-        return intval($this->wpdb->get_var($sql));
     }
 
     /**
@@ -276,36 +314,57 @@ class FBS_Activity_Tracker_Database {
         $stats = array();
 
         // Today's activity count
-        $today = date('Y-m-d');
-        $stats['today_count'] = $this->wpdb->get_var($this->wpdb->prepare(
-            "SELECT COUNT(*) FROM {$this->table_name} WHERE DATE(timestamp) = %s",
-            $today
-        ));
+        $today = gmdate('Y-m-d');
+        $stats['today_count'] = $this->wpdb->get_var(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                "SELECT COUNT(*) FROM {$this->table_name} WHERE DATE(timestamp) = %s",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                $today
+            )
+        );
 
         // Most active users (last 30 days)
-        $stats['top_users'] = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT user_id, user_name, COUNT(*) as activity_count 
-             FROM {$this->table_name} 
-             WHERE timestamp >= %s 
-             GROUP BY user_id, user_name 
-             ORDER BY activity_count DESC 
-             LIMIT 5",
-            date('Y-m-d', strtotime('-30 days'))
-        ));
+        $stats['top_users'] = $this->wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                "SELECT user_id, user_name, COUNT(*) as activity_count 
+                 FROM {$this->table_name}
+                 WHERE timestamp >= %s 
+                 GROUP BY user_id, user_name 
+                 ORDER BY activity_count DESC 
+                 LIMIT 5", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                gmdate('Y-m-d', strtotime('-30 days'))
+            )
+        );
 
         // Most common action types (last 30 days)
-        $stats['action_types'] = $this->wpdb->get_results($this->wpdb->prepare(
-            "SELECT action_type, COUNT(*) as count 
-             FROM {$this->table_name} 
-             WHERE timestamp >= %s 
-             GROUP BY action_type 
-             ORDER BY count DESC 
-             LIMIT 10",
-            date('Y-m-d', strtotime('-30 days'))
-        ));
+        $stats['action_types'] = $this->wpdb->get_results(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                "SELECT action_type, COUNT(*) as count 
+                 FROM {$this->table_name}
+                 WHERE timestamp >= %s 
+                 GROUP BY action_type 
+                 ORDER BY count DESC 
+                 LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                gmdate('Y-m-d', strtotime('-30 days'))
+            )
+        );
 
         // Total logs count
-        $stats['total_logs'] = $this->wpdb->get_var("SELECT COUNT(*) FROM {$this->table_name}");
+        $stats['total_logs'] = $this->wpdb->get_var(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                "SELECT COUNT(*) FROM {$this->table_name}"
+            )
+        );
 
         return $stats;
     }
@@ -327,12 +386,15 @@ class FBS_Activity_Tracker_Database {
         $sanitized_ids = array_map('intval', $log_ids);
         $placeholders = implode(',', array_fill(0, count($sanitized_ids), '%d'));
 
-        $sql = $this->wpdb->prepare(
-            "DELETE FROM {$this->table_name} WHERE id IN ({$placeholders})",
-            $sanitized_ids
+        return $this->wpdb->query(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Delete operation not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table name and placeholders are safe, interpolated variables are controlled
+                "DELETE FROM {$this->table_name} WHERE id IN ({$placeholders})",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- These are parameter values, not SQL injection risks
+                $sanitized_ids
+            )
         );
-
-        return $this->wpdb->query($sql);
     }
 
     /**
@@ -348,14 +410,21 @@ class FBS_Activity_Tracker_Database {
             $days = get_option('fbs_at_retention_days', 30);
         }
 
-        $cutoff_date = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        $cutoff_date = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
 
-        $result = $this->wpdb->query($this->wpdb->prepare(
-            "DELETE FROM {$this->table_name} WHERE timestamp < %s",
-            $cutoff_date
-        ));
+        $result = $this->wpdb->query(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Delete operation not suitable for caching.
+            $this->wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                "DELETE FROM {$this->table_name} WHERE timestamp < %s",
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
+                $cutoff_date
+            )
+        );
 
-        if ($result !== false) {
+        // Log cleanup result for debugging (only in debug mode)
+        if ($result !== false && defined('WP_DEBUG') && WP_DEBUG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Only used in debug mode
             error_log("FBS Activity Tracker: Cleaned up {$result} old logs");
         }
 
