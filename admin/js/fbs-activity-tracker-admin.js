@@ -339,6 +339,8 @@
             if (!value) {
                 dateFrom.value = '';
                 dateTo.value = '';
+                // Automatically apply filters when "All Time" is selected
+                this.applyFilters();
                 return;
             }
 
@@ -374,8 +376,12 @@
             }
 
             if (fromDate && toDate) {
-                dateFrom.value = this.formatDate(fromDate);
-                dateTo.value = this.formatDate(toDate);
+                const fromDateStr = this.formatDate(fromDate);
+                const toDateStr = this.formatDate(toDate);
+                dateFrom.value = fromDateStr;
+                dateTo.value = toDateStr;
+                // Automatically apply filters when a predefined date range is selected
+                this.applyFilters();
             }
         },
 

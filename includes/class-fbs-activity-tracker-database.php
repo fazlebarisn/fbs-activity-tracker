@@ -191,7 +191,7 @@ class FBS_Activity_Tracker_Database {
             $ts = strtotime( $filters['date_from'] );
             if ( $ts !== false ) {
                 $where_conditions[] = 'timestamp >= %s';
-                $where_values[]     = wp_date( 'Y-m-d H:i:s', $ts );
+                $where_values[]     = wp_date( 'Y-m-d 00:00:00', $ts );
             }
         }
     
@@ -200,7 +200,7 @@ class FBS_Activity_Tracker_Database {
             $ts = strtotime( $filters['date_to'] );
             if ( $ts !== false ) {
                 $where_conditions[] = 'timestamp <= %s';
-                $where_values[]     = wp_date( 'Y-m-d H:i:s', $ts );
+                $where_values[]     = wp_date( 'Y-m-d 23:59:59', $ts );
             }
         }
     
@@ -238,7 +238,7 @@ class FBS_Activity_Tracker_Database {
         // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- $where_clause only contains placeholders, and $this->table_name is a trusted property. All dynamic values are passed via $prepare_values.
         $prepared_sql = $wpdb->prepare( $sql, $prepare_values );
     
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $prepared_sql is prepared safely using $wpdb->prepare() above.
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- $prepared_sql is prepared safely using $wpdb->prepare() above. Dynamic query with filters and pagination not suitable for caching.
         return $wpdb->get_results( $prepared_sql );
     }
 
@@ -292,7 +292,7 @@ class FBS_Activity_Tracker_Database {
 
         return intval(
             $this->wpdb->get_var(
-                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+                // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Dynamic query with filters not suitable for caching.
                 $this->wpdb->prepare(
                     // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table name and WHERE clause are safe, interpolated variables are controlled
                     "SELECT COUNT(*) FROM {$this->table_name} WHERE {$where_clause}",
@@ -316,7 +316,7 @@ class FBS_Activity_Tracker_Database {
         // Today's activity count
         $today = gmdate('Y-m-d');
         $stats['today_count'] = $this->wpdb->get_var(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
                 "SELECT COUNT(*) FROM {$this->table_name} WHERE DATE(timestamp) = %s",
@@ -327,7 +327,7 @@ class FBS_Activity_Tracker_Database {
 
         // Most active users (last 30 days)
         $stats['top_users'] = $this->wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
                 "SELECT user_id, user_name, COUNT(*) as activity_count 
@@ -343,7 +343,7 @@ class FBS_Activity_Tracker_Database {
 
         // Most common action types (last 30 days)
         $stats['action_types'] = $this->wpdb->get_results(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
                 "SELECT action_type, COUNT(*) as count 
@@ -359,7 +359,7 @@ class FBS_Activity_Tracker_Database {
 
         // Total logs count
         $stats['total_logs'] = $this->wpdb->get_var(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
                 "SELECT COUNT(*) FROM {$this->table_name}"
@@ -387,7 +387,7 @@ class FBS_Activity_Tracker_Database {
         $placeholders = implode(',', array_fill(0, count($sanitized_ids), '%d'));
 
         return $this->wpdb->query(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Delete operation not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table name and placeholders are safe, interpolated variables are controlled
                 "DELETE FROM {$this->table_name} WHERE id IN ({$placeholders})",
@@ -413,7 +413,7 @@ class FBS_Activity_Tracker_Database {
         $cutoff_date = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));
 
         $result = $this->wpdb->query(
-            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a proper $wpdb->prepare() call
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Delete operation not suitable for caching.
             $this->wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
                 "DELETE FROM {$this->table_name} WHERE timestamp < %s",
