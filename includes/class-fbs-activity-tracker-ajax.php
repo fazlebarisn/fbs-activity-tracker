@@ -214,7 +214,28 @@ class FBS_Activity_Tracker_Ajax {
             wp_die(__('You do not have sufficient permissions.', 'fbs-activity-tracker'));
         }
 
-        $log_ids = $_POST['log_ids'] ?? array();
+        $log_ids = array();
+        
+        // Check if log_ids is sent as an array (log_ids[0], log_ids[1], etc.)
+        if (isset($_POST['log_ids']) && is_array($_POST['log_ids'])) {
+            $log_ids = $_POST['log_ids'];
+        }
+        // Check if log_ids is sent as individual parameters (log_ids[0], log_ids[1], etc.)
+        elseif (isset($_POST['log_ids[0]'])) {
+            $log_ids = array();
+            $i = 0;
+            while (isset($_POST["log_ids[$i]"])) {
+                $log_ids[] = $_POST["log_ids[$i]"];
+                $i++;
+            }
+        }
+        // Check if log_ids is sent as a JSON string
+        elseif (isset($_POST['log_ids']) && is_string($_POST['log_ids'])) {
+            $decoded_log_ids = json_decode($_POST['log_ids'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded_log_ids)) {
+                $log_ids = $decoded_log_ids;
+            }
+        }
         
         if (empty($log_ids) || !is_array($log_ids)) {
             wp_send_json_error(__('No logs selected for deletion.', 'fbs-activity-tracker'));

@@ -58,6 +58,26 @@
 
             // Load more
             document.getElementById('fbs-at-load-more-btn')?.addEventListener('click', () => this.loadMore());
+
+            // Event delegation for dynamically created checkboxes
+            const activityFeed = document.getElementById('fbs-at-activity-feed');
+            if (activityFeed) {
+                activityFeed.addEventListener('change', (e) => {
+                    if (e.target.classList.contains('fbs-at-log-checkbox')) {
+                        this.handleLogSelection(e.target);
+                    }
+                });
+                
+                // Also handle click events as a fallback
+                activityFeed.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('fbs-at-log-checkbox')) {
+                        // Small delay to ensure the checkbox state has updated
+                        setTimeout(() => {
+                            this.handleLogSelection(e.target);
+                        }, 10);
+                    }
+                });
+            }
         },
 
         // Load dashboard statistics
@@ -182,12 +202,6 @@
                 </div>
             `;
 
-            // Bind checkbox event
-            const checkbox = item.querySelector('.fbs-at-log-checkbox');
-            checkbox.addEventListener('change', (e) => {
-                this.handleLogSelection(e.target);
-            });
-
             return item;
         },
 
@@ -200,7 +214,7 @@
             } else {
                 this.config.selectedLogs.delete(logId);
             }
-
+            
             this.updateBulkActions();
             this.updateSelectAllState();
         },
@@ -249,12 +263,16 @@
             const selectedCount = document.getElementById('fbs-at-selected-count');
             
             if (this.config.selectedLogs.size > 0) {
-                bulkActions.style.display = 'flex';
+                if (bulkActions) {
+                    bulkActions.style.display = 'flex';
+                }
                 if (selectedCount) {
                     selectedCount.textContent = this.config.selectedLogs.size;
                 }
             } else {
-                bulkActions.style.display = 'none';
+                if (bulkActions) {
+                    bulkActions.style.display = 'none';
+                }
             }
         },
 
@@ -300,6 +318,8 @@
             
             document.getElementById('fbs-at-custom-date-row').style.display = 'none';
             
+            // Clear selected logs when clearing filters
+            this.clearSelectedLogs();
             this.loadActivityLogs(true);
         },
 
@@ -389,14 +409,15 @@
             }
 
             try {
+                const logIds = Array.from(this.config.selectedLogs);
+                
                 const response = await this.makeAjaxRequest(this.config.actions.deleteLogs, {
-                    log_ids: Array.from(this.config.selectedLogs)
+                    log_ids: logIds
                 });
 
                 if (response.success) {
                     this.showSuccess(response.data.message);
-                    this.config.selectedLogs.clear();
-                    this.updateBulkActions();
+                    this.clearSelectedLogs();
                     this.loadActivityLogs(true);
                     this.loadStatistics();
                 } else {
@@ -497,7 +518,14 @@
 
             Object.keys(data).forEach(key => {
                 if (data[key] !== undefined && data[key] !== '') {
-                    formData.append(key, Array.isArray(data[key]) ? JSON.stringify(data[key]) : data[key]);
+                    if (Array.isArray(data[key])) {
+                        // For arrays, send each item as a separate parameter
+                        data[key].forEach((item, index) => {
+                            formData.append(`${key}[${index}]`, item);
+                        });
+                    } else {
+                        formData.append(key, data[key]);
+                    }
                 }
             });
 
@@ -551,6 +579,12 @@
             if (feed) {
                 feed.innerHTML = '';
             }
+            // Don't clear selected logs here - they should persist across data loads
+            this.updateBulkActions();
+        },
+
+        // Clear selected logs (used after successful operations)
+        clearSelectedLogs() {
             this.config.selectedLogs.clear();
             this.updateBulkActions();
         },
