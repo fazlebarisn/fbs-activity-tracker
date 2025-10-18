@@ -29,16 +29,24 @@ define('FBS_ACTIVITY_TRACKER_PLUGIN_BASENAME', plugin_basename(__FILE__));
 
 /**
  * Main FBS Activity Tracker Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker
      */
     private static $instance = null;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -49,6 +57,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         $this->init_hooks();
@@ -57,6 +67,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Initialize hooks
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function init_hooks() {
         register_activation_hook(__FILE__, array($this, 'activate'));
@@ -68,6 +80,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Load plugin dependencies
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function load_dependencies() {
         require_once FBS_ACTIVITY_TRACKER_PLUGIN_DIR . 'includes/class-fbs-activity-tracker-database.php';
@@ -82,6 +96,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Initialize plugin
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function init() {
         // Initialize components
@@ -99,6 +115,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Load plugin textdomain
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function load_textdomain() {
         load_plugin_textdomain(
@@ -110,6 +128,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Plugin activation
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function activate() {
         // Create database table
@@ -130,6 +150,8 @@ class FBS_Activity_Tracker {
 
     /**
      * Plugin deactivation
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function deactivate() {
         // Clear scheduled events
@@ -142,6 +164,9 @@ class FBS_Activity_Tracker {
 
 /**
  * Initialize the plugin
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
+ * @return FBS_Activity_Tracker
  */
 function fbs_activity_tracker() {
     return FBS_Activity_Tracker::get_instance();

@@ -12,26 +12,40 @@ if (!defined('ABSPATH')) {
 
 /**
  * FBS Activity Tracker Database Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker_Database {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Database
      */
     private static $instance = null;
 
     /**
      * Database table name
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var string
      */
     private $table_name;
 
     /**
      * WordPress database object
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var wpdb
      */
     private $wpdb;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker_Database
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -42,6 +56,8 @@ class FBS_Activity_Tracker_Database {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         global $wpdb;
@@ -54,6 +70,8 @@ class FBS_Activity_Tracker_Database {
 
     /**
      * Create the activity logs table
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function create_table() {
         $charset_collate = $this->wpdb->get_charset_collate();
@@ -90,6 +108,8 @@ class FBS_Activity_Tracker_Database {
      *
      * @param array $log_data Log data array
      * @return int|false Log ID on success, false on failure
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function insert_log($log_data) {
         // Sanitize and validate data
@@ -131,6 +151,8 @@ class FBS_Activity_Tracker_Database {
      * @param int $limit Number of logs to retrieve
      * @param int $offset Offset for pagination
      * @return array Array of log objects
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_logs($filters = array(), $limit = 50, $offset = 0) {
         $where_conditions = array('1=1');
@@ -192,6 +214,8 @@ class FBS_Activity_Tracker_Database {
      *
      * @param array $filters Filter parameters
      * @return int Total count
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_logs_count($filters = array()) {
         $where_conditions = array('1=1');
@@ -245,6 +269,8 @@ class FBS_Activity_Tracker_Database {
      * Get dashboard statistics
      *
      * @return array Statistics data
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_statistics() {
         $stats = array();
@@ -289,6 +315,8 @@ class FBS_Activity_Tracker_Database {
      *
      * @param array $log_ids Array of log IDs to delete
      * @return int|false Number of deleted rows or false on failure
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function delete_logs($log_ids) {
         if (empty($log_ids) || !is_array($log_ids)) {
@@ -312,6 +340,8 @@ class FBS_Activity_Tracker_Database {
      *
      * @param int $days Number of days to keep logs
      * @return int|false Number of deleted rows or false on failure
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function cleanup_old_logs($days = null) {
         if ($days === null) {
@@ -336,6 +366,8 @@ class FBS_Activity_Tracker_Database {
      * Get table name
      *
      * @return string Table name
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_table_name() {
         return $this->table_name;
@@ -346,6 +378,8 @@ class FBS_Activity_Tracker_Database {
      *
      * @param array $log_data Raw log data
      * @return array|false Sanitized data or false if invalid
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function sanitize_log_data($log_data) {
         $required_fields = array('user_id', 'action_type', 'timestamp');

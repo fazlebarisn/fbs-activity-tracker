@@ -12,21 +12,32 @@ if (!defined('ABSPATH')) {
 
 /**
  * FBS Activity Tracker AJAX Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker_Ajax {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Ajax
      */
     private static $instance = null;
 
     /**
      * Database instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Database
      */
     private $database;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker_Ajax
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -37,6 +48,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         $this->database = FBS_Activity_Tracker_Database::get_instance();
@@ -45,6 +58,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Initialize AJAX hooks
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function init_hooks() {
         // AJAX actions for logged-in users
@@ -56,6 +71,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Get activity logs via AJAX
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_activity_logs() {
         // Verify nonce
@@ -134,6 +151,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Get statistics via AJAX
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_statistics() {
         // Verify nonce
@@ -181,6 +200,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Delete logs via AJAX
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function delete_logs() {
         // Verify nonce
@@ -213,6 +234,8 @@ class FBS_Activity_Tracker_Ajax {
 
     /**
      * Export logs via AJAX
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function export_logs() {
         // Verify nonce
@@ -295,6 +318,8 @@ class FBS_Activity_Tracker_Ajax {
      *
      * @param string $timestamp MySQL timestamp
      * @return string Formatted timestamp
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function format_timestamp($timestamp) {
         $time = strtotime($timestamp);
@@ -322,6 +347,8 @@ class FBS_Activity_Tracker_Ajax {
      *
      * @param string $action_type Action type
      * @return string Action label
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_action_label($action_type) {
         $labels = array(
@@ -352,6 +379,8 @@ class FBS_Activity_Tracker_Ajax {
      *
      * @param string $action_type Action type
      * @return string Color class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_action_color($action_type) {
         $colors = array(
@@ -383,6 +412,8 @@ class FBS_Activity_Tracker_Ajax {
      * @param int $user_id User ID
      * @param string $user_email User email (fallback)
      * @return string Avatar HTML
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_user_avatar($user_id, $user_email = '') {
         if ($user_id > 0) {

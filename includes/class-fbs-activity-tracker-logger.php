@@ -12,21 +12,32 @@ if (!defined('ABSPATH')) {
 
 /**
  * FBS Activity Tracker Logger Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker_Logger {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Logger
      */
     private static $instance = null;
 
     /**
      * Database instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Database
      */
     private $database;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker_Logger
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -37,6 +48,8 @@ class FBS_Activity_Tracker_Logger {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         $this->database = FBS_Activity_Tracker_Database::get_instance();
@@ -45,6 +58,8 @@ class FBS_Activity_Tracker_Logger {
 
     /**
      * Initialize WordPress hooks
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function init_hooks() {
         // User authentication hooks
@@ -77,6 +92,8 @@ class FBS_Activity_Tracker_Logger {
      *
      * @param string $user_login Username
      * @param WP_User $user User object
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_user_login($user_login, $user) {
         $this->insert_log(array(
@@ -95,6 +112,8 @@ class FBS_Activity_Tracker_Logger {
 
     /**
      * Log user logout
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_user_logout() {
         $user = wp_get_current_user();
@@ -119,6 +138,8 @@ class FBS_Activity_Tracker_Logger {
      * Log failed login attempt
      *
      * @param string $username Username that failed to login
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_login_failed($username) {
         $this->insert_log(array(
@@ -141,6 +162,8 @@ class FBS_Activity_Tracker_Logger {
      * @param string $new_status New post status
      * @param string $old_status Old post status
      * @param WP_Post $post Post object
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_post_status_change($new_status, $old_status, $post) {
         // Skip auto-drafts and revisions
@@ -202,6 +225,8 @@ class FBS_Activity_Tracker_Logger {
      * Log post deletion
      *
      * @param int $post_id Post ID
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_post_deleted($post_id) {
         $post = get_post($post_id);
@@ -230,6 +255,8 @@ class FBS_Activity_Tracker_Logger {
      * Log post untrash
      *
      * @param int $post_id Post ID
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_post_untrashed($post_id) {
         $post = get_post($post_id);
@@ -258,6 +285,8 @@ class FBS_Activity_Tracker_Logger {
      * Log plugin activation
      *
      * @param string $plugin Plugin file path
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_plugin_activated($plugin) {
         $user = wp_get_current_user();
@@ -281,6 +310,8 @@ class FBS_Activity_Tracker_Logger {
      * Log plugin deactivation
      *
      * @param string $plugin Plugin file path
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_plugin_deactivated($plugin) {
         $user = wp_get_current_user();
@@ -304,6 +335,8 @@ class FBS_Activity_Tracker_Logger {
      * Log theme switch
      *
      * @param string $new_name New theme name
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_theme_switched($new_name) {
         $user = wp_get_current_user();
@@ -327,6 +360,8 @@ class FBS_Activity_Tracker_Logger {
      *
      * @param int $user_id User ID
      * @param WP_User $old_user_data Old user data
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_user_profile_updated($user_id, $old_user_data) {
         $user = get_userdata($user_id);
@@ -355,6 +390,8 @@ class FBS_Activity_Tracker_Logger {
      * Log user registration
      *
      * @param int $user_id User ID
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_user_registered($user_id) {
         $user = get_userdata($user_id);
@@ -383,6 +420,8 @@ class FBS_Activity_Tracker_Logger {
      * @param string $option_name Option name
      * @param mixed $old_value Old value
      * @param mixed $value New value
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function log_option_updated($option_name, $old_value, $value) {
         // Skip certain options that change frequently
@@ -424,6 +463,8 @@ class FBS_Activity_Tracker_Logger {
      *
      * @param array $log_data Log data
      * @return int|false Log ID on success, false on failure
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function insert_log($log_data) {
         return $this->database->insert_log($log_data);
@@ -433,6 +474,8 @@ class FBS_Activity_Tracker_Logger {
      * Get user IP address
      *
      * @return string User IP address
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_user_ip() {
         $ip_keys = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR');
@@ -457,6 +500,8 @@ class FBS_Activity_Tracker_Logger {
      *
      * @param string $plugin_file Plugin file path
      * @return string Plugin name
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_plugin_name($plugin_file) {
         if (!function_exists('get_plugin_data')) {

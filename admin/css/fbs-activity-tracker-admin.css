@@ -1,9 +1,16 @@
 /**
  * FBS Activity Tracker - Modern Admin CSS
  * Custom-designed dashboard interface
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 
 /* CSS Variables for theming */
+/**
+ * CSS Variables for theming
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
+ */
 :root {
     --fbs-at-primary: #4361ee;
     --fbs-at-primary-dark: #3f37c9;

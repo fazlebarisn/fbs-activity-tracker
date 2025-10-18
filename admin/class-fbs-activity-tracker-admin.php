@@ -12,21 +12,32 @@ if (!defined('ABSPATH')) {
 
 /**
  * FBS Activity Tracker Admin Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker_Admin {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Admin
      */
     private static $instance = null;
 
     /**
      * Database instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Database
      */
     private $database;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker_Admin
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -37,6 +48,8 @@ class FBS_Activity_Tracker_Admin {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         $this->database = FBS_Activity_Tracker_Database::get_instance();
@@ -45,6 +58,8 @@ class FBS_Activity_Tracker_Admin {
 
     /**
      * Initialize hooks
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function init_hooks() {
         add_action('admin_menu', array($this, 'add_admin_menu'));
@@ -53,6 +68,8 @@ class FBS_Activity_Tracker_Admin {
 
     /**
      * Add admin menu
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function add_admin_menu() {
         add_menu_page(
@@ -68,6 +85,8 @@ class FBS_Activity_Tracker_Admin {
 
     /**
      * Admin init
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function admin_init() {
         // Register settings if needed
@@ -77,6 +96,8 @@ class FBS_Activity_Tracker_Admin {
 
     /**
      * Admin page callback
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function admin_page() {
         // Get users for filter dropdown
@@ -313,6 +334,8 @@ class FBS_Activity_Tracker_Admin {
      * Get action types for filter dropdown
      *
      * @return array Action types
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_action_types() {
         return array(
@@ -340,6 +363,8 @@ class FBS_Activity_Tracker_Admin {
      * Get object types for filter dropdown
      *
      * @return array Object types
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function get_object_types() {
         return array(

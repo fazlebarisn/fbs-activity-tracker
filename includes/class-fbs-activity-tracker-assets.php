@@ -12,16 +12,24 @@ if (!defined('ABSPATH')) {
 
 /**
  * FBS Activity Tracker Assets Class
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
  */
 class FBS_Activity_Tracker_Assets {
 
     /**
      * Single instance of the class
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @var FBS_Activity_Tracker_Assets
      */
     private static $instance = null;
 
     /**
      * Get single instance
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     * @return FBS_Activity_Tracker_Assets
      */
     public static function get_instance() {
         if (null === self::$instance) {
@@ -32,6 +40,8 @@ class FBS_Activity_Tracker_Assets {
 
     /**
      * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     private function __construct() {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
@@ -42,6 +52,8 @@ class FBS_Activity_Tracker_Assets {
      * Enqueue admin assets
      *
      * @param string $hook Current admin page hook
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function enqueue_admin_assets($hook) {
         // Only load on our admin pages
@@ -97,6 +109,8 @@ class FBS_Activity_Tracker_Assets {
 
     /**
      * Enqueue frontend assets (if needed)
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function enqueue_frontend_assets() {
         // Frontend assets can be added here if needed in the future
@@ -108,6 +122,8 @@ class FBS_Activity_Tracker_Assets {
      *
      * @param string $path Asset path relative to plugin directory
      * @return string Full asset URL
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_asset_url($path) {
         return FBS_ACTIVITY_TRACKER_PLUGIN_URL . ltrim($path, '/');
@@ -118,6 +134,8 @@ class FBS_Activity_Tracker_Assets {
      *
      * @param string $path Asset path relative to plugin directory
      * @return string Full asset path
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_asset_path($path) {
         return FBS_ACTIVITY_TRACKER_PLUGIN_DIR . ltrim($path, '/');
@@ -128,6 +146,8 @@ class FBS_Activity_Tracker_Assets {
      *
      * @param string $path Asset path relative to plugin directory
      * @return bool True if file exists
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function asset_exists($path) {
         return file_exists($this->get_asset_path($path));
@@ -138,6 +158,8 @@ class FBS_Activity_Tracker_Assets {
      *
      * @param string $path Asset path
      * @return string Asset version
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
      */
     public function get_asset_version($path) {
         $file_path = $this->get_asset_path($path);

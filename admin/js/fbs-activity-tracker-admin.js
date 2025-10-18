@@ -3,7 +3,18 @@
  * Custom dashboard interface with AJAX, filtering, and infinite scroll
  */
 
+/**
+ * FBS Activity Tracker - Modern Admin JavaScript
+ * Custom dashboard interface with AJAX, filtering, and infinite scroll
+ * @author Fazle Bari <fazlebarisn@gmail.com>
+ * @since 1.0.0
+ */
 class FBSActivityTracker {
+    /**
+     * Constructor
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.0.0
+     */
     constructor() {
         this.currentFilters = {};
         this.currentOffset = 0;
