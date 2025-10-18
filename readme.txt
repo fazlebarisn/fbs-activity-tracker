@@ -1,6 +1,6 @@
 === FBS Activity Tracker ===
 Contributors: fazlebari
-Tags: activity log, audit log, user tracking, security, monitoring, dashboard, analytics
+Tags: activity log, audit log, user tracking, security, monitoring
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4

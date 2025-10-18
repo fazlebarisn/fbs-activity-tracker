@@ -90,8 +90,12 @@ class FBS_Activity_Tracker_Admin {
      */
     public function admin_init() {
         // Register settings if needed
-        register_setting('fbs_at_settings', 'fbs_at_retention_days');
-        register_setting('fbs_at_settings', 'fbs_at_auto_cleanup');
+        register_setting('fbs_at_settings', 'fbs_at_retention_days', array(
+            'sanitize_callback' => 'absint'
+        ));
+        register_setting('fbs_at_settings', 'fbs_at_auto_cleanup', array(
+            'sanitize_callback' => 'rest_sanitize_boolean'
+        ));
     }
 
     /**
