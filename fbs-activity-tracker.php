@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: FBS Activity Tracker
- * Plugin URI: https://your-website.com/fbs-activity-tracker
+ * Plugin URI: https://github.com/fazlebarisn/fbs-secure-optimize
  * Description: A modern, granular user activity and audit log WordPress plugin with a custom-designed dashboard interface.
  * Version: 1.0.0
  * Author: Fazle Bari
- * Author URI: https://your-website.com
+ * Author URI: https://github.com/fazlebarisn
  * Text Domain: fbs-activity-tracker
  * Domain Path: /languages
  * Requires at least: 5.0
