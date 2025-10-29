@@ -69,6 +69,14 @@ class FBS_Activity_Tracker_Assets {
             FBS_ACTIVITY_TRACKER_VERSION
         );
 
+        // Enqueue notification styles
+        wp_enqueue_style(
+            'fbs-activity-tracker-notifications',
+            FBS_ACTIVITY_TRACKER_PLUGIN_URL . 'admin/css/fbs-activity-tracker-notifications.css',
+            array(),
+            FBS_ACTIVITY_TRACKER_VERSION
+        );
+
         // Enqueue JavaScript
         wp_enqueue_script(
             'fbs-activity-tracker-admin',
@@ -81,7 +89,7 @@ class FBS_Activity_Tracker_Assets {
         // Localize script with AJAX data
         wp_localize_script('fbs-activity-tracker-admin', 'fbsActivityTracker', array(
             'ajaxUrl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('fbs_at_nonce'),
+            'nonce' => wp_create_nonce('fbsat_nonce'),
             'strings' => array(
                 'loading' => __('Loading...', 'fbs-activity-tracker'),
                 'error' => __('An error occurred. Please try again.', 'fbs-activity-tracker'),
@@ -99,10 +107,10 @@ class FBS_Activity_Tracker_Assets {
                 'custom' => __('Custom range', 'fbs-activity-tracker')
             ),
             'actions' => array(
-                'getLogs' => 'fbs_at_get_activity_logs',
-                'getStats' => 'fbs_at_get_statistics',
-                'deleteLogs' => 'fbs_at_delete_logs',
-                'exportLogs' => 'fbs_at_export_logs'
+                'getLogs' => 'fbsat_get_activity_logs',
+                'getStats' => 'fbsat_get_statistics',
+                'deleteLogs' => 'fbsat_delete_logs',
+                'exportLogs' => 'fbsat_export_logs'
             )
         ));
     }

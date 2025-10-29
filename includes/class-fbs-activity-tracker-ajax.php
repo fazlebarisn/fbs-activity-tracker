@@ -63,10 +63,10 @@ class FBS_Activity_Tracker_Ajax {
      */
     private function init_hooks() {
         // AJAX actions for logged-in users
-        add_action('wp_ajax_fbs_at_get_activity_logs', array($this, 'get_activity_logs'));
-        add_action('wp_ajax_fbs_at_get_statistics', array($this, 'get_statistics'));
-        add_action('wp_ajax_fbs_at_delete_logs', array($this, 'delete_logs'));
-        add_action('wp_ajax_fbs_at_export_logs', array($this, 'export_logs'));
+        add_action('wp_ajax_fbsat_get_activity_logs', array($this, 'get_activity_logs'));
+        add_action('wp_ajax_fbsat_get_statistics', array($this, 'get_statistics'));
+        add_action('wp_ajax_fbsat_delete_logs', array($this, 'delete_logs'));
+        add_action('wp_ajax_fbsat_export_logs', array($this, 'export_logs'));
     }
 
     /**
@@ -76,7 +76,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_activity_logs() {
         // Verify nonce
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbsat_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -156,7 +156,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function get_statistics() {
         // Verify nonce
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbsat_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -205,7 +205,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function delete_logs() {
         // Verify nonce
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbsat_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 
@@ -261,7 +261,7 @@ class FBS_Activity_Tracker_Ajax {
      */
     public function export_logs() {
         // Verify nonce
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbs_at_nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['nonce'] ?? '')), 'fbsat_nonce')) {
             wp_die(esc_html__('Security check failed.', 'fbs-activity-tracker'));
         }
 

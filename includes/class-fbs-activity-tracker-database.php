@@ -65,7 +65,7 @@ class FBS_Activity_Tracker_Database {
         $this->table_name = $wpdb->prefix . 'fbs_activity_logs';
         
         // Hook into cleanup event
-        add_action('fbs_at_cleanup_logs', array($this, 'cleanup_old_logs'));
+        add_action('fbsat_cleanup_logs', array($this, 'cleanup_old_logs'));
     }
 
     /**
@@ -100,7 +100,7 @@ class FBS_Activity_Tracker_Database {
         dbDelta($sql);
 
         // Update database version
-        update_option('fbs_at_db_version', FBS_ACTIVITY_TRACKER_VERSION);
+        update_option('fbsat_db_version', FBS_ACTIVITY_TRACKER_VERSION);
     }
 
     /**
@@ -407,7 +407,7 @@ class FBS_Activity_Tracker_Database {
      */
     public function cleanup_old_logs($days = null) {
         if ($days === null) {
-            $days = get_option('fbs_at_retention_days', 30);
+            $days = get_option('fbsat_retention_days', 30);
         }
 
         $cutoff_date = gmdate('Y-m-d H:i:s', strtotime("-{$days} days"));

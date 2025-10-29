@@ -122,12 +122,12 @@ class FBS_Activity_Tracker {
         FBS_Activity_Tracker_Database::get_instance()->create_table();
         
         // Set default options
-        add_option('fbs_at_retention_days', 30);
-        add_option('fbs_at_auto_cleanup', true);
+        add_option('fbsat_retention_days', 30);
+        add_option('fbsat_auto_cleanup', true);
         
         // Schedule cleanup event
-        if (!wp_next_scheduled('fbs_at_cleanup_logs')) {
-            wp_schedule_event(time(), 'daily', 'fbs_at_cleanup_logs');
+        if (!wp_next_scheduled('fbsat_cleanup_logs')) {
+            wp_schedule_event(time(), 'daily', 'fbsat_cleanup_logs');
         }
         
         // Flush rewrite rules
@@ -141,7 +141,7 @@ class FBS_Activity_Tracker {
      */
     public function deactivate() {
         // Clear scheduled events
-        wp_clear_scheduled_hook('fbs_at_cleanup_logs');
+        wp_clear_scheduled_hook('fbsat_cleanup_logs');
         
         // Flush rewrite rules
         flush_rewrite_rules();
@@ -154,9 +154,9 @@ class FBS_Activity_Tracker {
  * @since 1.0.0
  * @return FBS_Activity_Tracker
  */
-function fbs_activity_tracker() {
+function fbsat_activity_tracker() {
     return FBS_Activity_Tracker::get_instance();
 }
 
 // Start the plugin
-fbs_activity_tracker();
+fbsat_activity_tracker();

@@ -90,10 +90,10 @@ class FBS_Activity_Tracker_Admin {
      */
     public function admin_init() {
         // Register settings if needed
-        register_setting('fbs_at_settings', 'fbs_at_retention_days', array(
+        register_setting('fbsat_settings', 'fbsat_retention_days', array(
             'sanitize_callback' => 'absint'
         ));
-        register_setting('fbs_at_settings', 'fbs_at_auto_cleanup', array(
+        register_setting('fbsat_settings', 'fbsat_auto_cleanup', array(
             'sanitize_callback' => 'rest_sanitize_boolean'
         ));
     }
@@ -326,8 +326,8 @@ class FBS_Activity_Tracker_Admin {
 
         <!-- Hidden form for AJAX requests -->
         <form id="fbs-at-ajax-form" style="display: none;">
-            <input type="hidden" name="action" value="fbs_at_get_activity_logs">
-            <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('fbs_at_nonce')); ?>">
+            <input type="hidden" name="action" value="fbsat_get_activity_logs">
+            <input type="hidden" name="nonce" value="<?php echo esc_attr(wp_create_nonce('fbsat_nonce')); ?>">
             <input type="hidden" name="limit" value="50">
             <input type="hidden" name="offset" value="0">
         </form>
