@@ -326,16 +326,17 @@ class FBS_Activity_Tracker_Database {
         );
 
         // Most active users (last 30 days)
+        $table_name = $this->table_name; // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, set from $wpdb->prefix in constructor
         $stats['top_users'] = $this->wpdb->get_results(
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, set from $wpdb->prefix in constructor
                 "SELECT user_id, user_name, COUNT(*) as activity_count 
-                 FROM {$this->table_name}
+                 FROM {$table_name}
                  WHERE timestamp >= %s 
                  GROUP BY user_id, user_name 
                  ORDER BY activity_count DESC 
-                 LIMIT 5", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                 LIMIT 5",
                 // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
                 gmdate('Y-m-d', strtotime('-30 days'))
             )
@@ -345,13 +346,13 @@ class FBS_Activity_Tracker_Database {
         $stats['action_types'] = $this->wpdb->get_results(
             // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- This is a proper $wpdb->prepare() call. Statistics query not suitable for caching.
             $this->wpdb->prepare(
-                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, interpolated variable is controlled
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is safe, set from $wpdb->prefix in constructor
                 "SELECT action_type, COUNT(*) as count 
-                 FROM {$this->table_name}
+                 FROM {$table_name}
                  WHERE timestamp >= %s 
                  GROUP BY action_type 
                  ORDER BY count DESC 
-                 LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                 LIMIT 10",
                 // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- This is a parameter value, not SQL injection risk
                 gmdate('Y-m-d', strtotime('-30 days'))
             )
