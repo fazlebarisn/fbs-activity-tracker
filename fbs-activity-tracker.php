@@ -3,13 +3,13 @@
  * Plugin Name: FBS Activity Tracker
  * Plugin URI: https://github.com/fazlebarisn/fbs-secure-optimize
  * Description: A modern, granular user activity and audit log WordPress plugin with a custom-designed dashboard interface.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Fazle Bari
  * Author URI: https://github.com/fazlebarisn
  * Text Domain: fbs-activity-tracker
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 6.8
+ * Tested up to: 6.9
  * Requires PHP: 7.4
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('FBS_ACTIVITY_TRACKER_VERSION', '1.0.0');
+define('FBS_ACTIVITY_TRACKER_VERSION', '1.0.1');
 define('FBS_ACTIVITY_TRACKER_PLUGIN_FILE', __FILE__);
 define('FBS_ACTIVITY_TRACKER_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('FBS_ACTIVITY_TRACKER_PLUGIN_URL', plugin_dir_url(__FILE__));
