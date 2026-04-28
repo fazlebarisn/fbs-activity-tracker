@@ -342,7 +342,7 @@ class FBS_Activity_Tracker_Admin {
      * @since 1.0.0
      */
     private function get_action_types() {
-        return array(
+        $labels = array(
             'user_login' => __('User Login', 'fbs-activity-tracker'),
             'user_logout' => __('User Logout', 'fbs-activity-tracker'),
             'login_failed' => __('Login Failed', 'fbs-activity-tracker'),
@@ -359,8 +359,23 @@ class FBS_Activity_Tracker_Admin {
             'theme_switched' => __('Theme Switched', 'fbs-activity-tracker'),
             'user_profile_updated' => __('Profile Updated', 'fbs-activity-tracker'),
             'user_registered' => __('User Registered', 'fbs-activity-tracker'),
+            'user_role_changed' => __('User Role Changed', 'fbs-activity-tracker'),
+            'user_password_reset' => __('Password Reset', 'fbs-activity-tracker'),
+            'media_uploaded' => __('Media Uploaded', 'fbs-activity-tracker'),
+            'media_deleted' => __('Media Deleted', 'fbs-activity-tracker'),
+            'comment_created' => __('Comment Created', 'fbs-activity-tracker'),
+            'comment_status_changed' => __('Comment Status Changed', 'fbs-activity-tracker'),
             'option_updated' => __('Setting Updated', 'fbs-activity-tracker')
         );
+
+        $action_types = $this->database->get_distinct_action_types();
+        foreach ($action_types as $action_type) {
+            if (!isset($labels[$action_type])) {
+                $labels[$action_type] = $this->humanize_label($action_type);
+            }
+        }
+
+        return $labels;
     }
 
     /**
@@ -371,13 +386,40 @@ class FBS_Activity_Tracker_Admin {
      * @since 1.0.0
      */
     private function get_object_types() {
-        return array(
+        $labels = array(
             'user' => __('User', 'fbs-activity-tracker'),
             'post' => __('Post', 'fbs-activity-tracker'),
             'page' => __('Page', 'fbs-activity-tracker'),
+            'comment' => __('Comment', 'fbs-activity-tracker'),
+            'attachment' => __('Media', 'fbs-activity-tracker'),
             'plugin' => __('Plugin', 'fbs-activity-tracker'),
             'theme' => __('Theme', 'fbs-activity-tracker'),
             'option' => __('Setting', 'fbs-activity-tracker')
         );
+
+        $object_types = $this->database->get_distinct_object_types();
+        foreach ($object_types as $object_type) {
+            if (!isset($labels[$object_type])) {
+                $labels[$object_type] = $this->humanize_label($object_type);
+            }
+        }
+
+        return $labels;
+    }
+
+    /**
+     * Humanize log key labels for UI dropdowns.
+     *
+     * @param string $key Raw key.
+     * @return string
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    private function humanize_label($key) {
+        $key = sanitize_key($key);
+        if ($key === '') {
+            return '';
+        }
+        return ucwords(str_replace(array('-', '_'), ' ', $key));
     }
 }

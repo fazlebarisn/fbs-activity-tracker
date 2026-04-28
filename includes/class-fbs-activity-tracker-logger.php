@@ -82,9 +82,22 @@ class FBS_Activity_Tracker_Logger {
         // User profile hooks
         add_action('profile_update', array($this, 'log_user_profile_updated'), 10, 2);
         add_action('user_register', array($this, 'log_user_registered'));
+        add_action('set_user_role', array($this, 'log_user_role_changed'), 10, 3);
+        add_action('after_password_reset', array($this, 'log_password_reset'), 10, 2);
 
         // Settings hooks
         add_action('updated_option', array($this, 'log_option_updated'), 10, 3);
+
+        // Media hooks
+        add_action('add_attachment', array($this, 'log_media_uploaded'));
+        add_action('delete_attachment', array($this, 'log_media_deleted'));
+
+        // Comment hooks
+        add_action('wp_insert_comment', array($this, 'log_comment_created'), 10, 2);
+        add_action('transition_comment_status', array($this, 'log_comment_status_changed'), 10, 3);
+
+        // Custom events from other plugins/themes.
+        add_action('fbsat_log_event', array($this, 'log_custom_event'));
     }
 
     /**
@@ -430,6 +443,225 @@ class FBS_Activity_Tracker_Logger {
     }
 
     /**
+     * Log user role changes.
+     *
+     * @param int    $user_id   User ID.
+     * @param string $new_role  New role.
+     * @param array  $old_roles Previous roles.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_user_role_changed($user_id, $new_role, $old_roles) {
+        $user = get_userdata($user_id);
+        if (!$user) {
+            return;
+        }
+
+        $current_user = wp_get_current_user();
+        $old_roles_string = is_array($old_roles) ? implode(', ', array_map('sanitize_text_field', $old_roles)) : '';
+
+        $this->insert_log(array(
+            'user_id' => $current_user->ID,
+            'user_name' => $current_user->display_name,
+            'user_email' => $current_user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'user_role_changed',
+            'object_type' => 'user',
+            'object_id' => $user_id,
+            'object_name' => $user->display_name,
+            /* translators: 1: user display name, 2: old role list, 3: new role */
+            'details' => sprintf(__('Changed user role for %1$s from [%2$s] to [%3$s]', 'fbs-activity-tracker'), $user->display_name, $old_roles_string, $new_role),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log password reset events.
+     *
+     * @param WP_User $user     User object.
+     * @param string  $new_pass New password (not logged).
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_password_reset($user, $new_pass) {
+        unset($new_pass); // Never log raw passwords.
+        if (!$user || !($user instanceof WP_User)) {
+            return;
+        }
+
+        $current_user = wp_get_current_user();
+
+        $this->insert_log(array(
+            'user_id' => $current_user->ID > 0 ? $current_user->ID : $user->ID,
+            'user_name' => $current_user->ID > 0 ? $current_user->display_name : $user->display_name,
+            'user_email' => $current_user->ID > 0 ? $current_user->user_email : $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'user_password_reset',
+            'object_type' => 'user',
+            'object_id' => $user->ID,
+            'object_name' => $user->display_name,
+            /* translators: %s is the user's display name */
+            'details' => sprintf(__('Password reset for user: %s', 'fbs-activity-tracker'), $user->display_name),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log media uploads.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_media_uploaded($attachment_id) {
+        $post = get_post($attachment_id);
+        if (!$post || $post->post_type !== 'attachment') {
+            return;
+        }
+
+        $user = wp_get_current_user();
+        $filename = wp_basename(get_attached_file($attachment_id));
+
+        $this->insert_log(array(
+            'user_id' => $user->ID,
+            'user_name' => $user->display_name,
+            'user_email' => $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'media_uploaded',
+            'object_type' => 'attachment',
+            'object_id' => $attachment_id,
+            'object_name' => $post->post_title,
+            /* translators: %s is the uploaded filename */
+            'details' => sprintf(__('Uploaded media file: %s', 'fbs-activity-tracker'), $filename),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log media deletion.
+     *
+     * @param int $attachment_id Attachment ID.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_media_deleted($attachment_id) {
+        $post = get_post($attachment_id);
+        if (!$post || $post->post_type !== 'attachment') {
+            return;
+        }
+
+        $user = wp_get_current_user();
+
+        $this->insert_log(array(
+            'user_id' => $user->ID,
+            'user_name' => $user->display_name,
+            'user_email' => $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'media_deleted',
+            'object_type' => 'attachment',
+            'object_id' => $attachment_id,
+            'object_name' => $post->post_title,
+            /* translators: %s is the media title */
+            'details' => sprintf(__('Deleted media file: %s', 'fbs-activity-tracker'), $post->post_title),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log comment creation.
+     *
+     * @param int        $comment_id       Comment ID.
+     * @param WP_Comment $comment_object   Comment object.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_comment_created($comment_id, $comment_object) {
+        if (!($comment_object instanceof WP_Comment)) {
+            return;
+        }
+
+        $user = wp_get_current_user();
+        $post_title = get_the_title($comment_object->comment_post_ID);
+        $comment_author = $comment_object->comment_author ? $comment_object->comment_author : __('Unknown', 'fbs-activity-tracker');
+
+        $this->insert_log(array(
+            'user_id' => $user->ID,
+            'user_name' => $user->display_name,
+            'user_email' => $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'comment_created',
+            'object_type' => 'comment',
+            'object_id' => $comment_id,
+            'object_name' => $comment_author,
+            /* translators: 1: comment author, 2: post title */
+            'details' => sprintf(__('New comment by %1$s on: %2$s', 'fbs-activity-tracker'), $comment_author, $post_title),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log comment status transitions.
+     *
+     * @param string     $new_status New status.
+     * @param string     $old_status Old status.
+     * @param WP_Comment $comment    Comment object.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_comment_status_changed($new_status, $old_status, $comment) {
+        if (!($comment instanceof WP_Comment) || $new_status === $old_status) {
+            return;
+        }
+
+        $user = wp_get_current_user();
+        $post_title = get_the_title($comment->comment_post_ID);
+
+        $this->insert_log(array(
+            'user_id' => $user->ID,
+            'user_name' => $user->display_name,
+            'user_email' => $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => 'comment_status_changed',
+            'object_type' => 'comment',
+            'object_id' => $comment->comment_ID,
+            'object_name' => __('Comment', 'fbs-activity-tracker'),
+            /* translators: 1: old status, 2: new status, 3: post title */
+            'details' => sprintf(__('Comment status changed from %1$s to %2$s on: %3$s', 'fbs-activity-tracker'), $old_status, $new_status, $post_title),
+            'timestamp' => current_time('mysql')
+        ));
+    }
+
+    /**
+     * Log custom events from other plugins/themes.
+     *
+     * @param array $event_data Custom event payload.
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function log_custom_event($event_data) {
+        if (!is_array($event_data) || empty($event_data['action_type'])) {
+            return;
+        }
+
+        $user = wp_get_current_user();
+        $defaults = array(
+            'user_id' => $user->ID,
+            'user_name' => $user->display_name,
+            'user_email' => $user->user_email,
+            'user_ip' => $this->get_user_ip(),
+            'action_type' => '',
+            'object_type' => 'custom',
+            'object_id' => 0,
+            'object_name' => '',
+            'details' => '',
+            'timestamp' => current_time('mysql'),
+        );
+
+        $data = wp_parse_args($event_data, $defaults);
+        $this->insert_log($data);
+    }
+
+    /**
      * Log option updates (WordPress settings)
      *
      * @param string $option_name Option name
@@ -439,7 +671,7 @@ class FBS_Activity_Tracker_Logger {
      * @since 1.0.0
      */
     public function log_option_updated($option_name, $old_value, $value) {
-        // Skip certain options that change frequently
+        // Skip certain options that change frequently and create audit noise.
         $skip_options = array(
             'cron',
             'recovery_mode_email_last_sent',
@@ -448,11 +680,38 @@ class FBS_Activity_Tracker_Logger {
             '_site_transient_',
             'widget_',
             'theme_mods_',
-            'recently_activated'
+            'recently_activated',
+            '_elementor_pro_api_requests_lock',
+            'woocommerce_admin_notices',
+            'frmpro_db_version',
+            'frm_inbox_cache',
+            'frm_sales_cache'
         );
 
+        /**
+         * Filter list of option-name prefixes or exact names to skip.
+         *
+         * @param array  $skip_options Default skip list.
+         * @param string $option_name  Current option name.
+         */
+        $skip_options = apply_filters('fbsat_skip_option_updates', $skip_options, $option_name);
+
         foreach ($skip_options as $skip) {
-            if (strpos($option_name, $skip) === 0) {
+            $skip = (string) $skip;
+            if ($skip === '') {
+                continue;
+            }
+
+            // Support both exact option names and prefix matches.
+            if ($option_name === $skip || strpos($option_name, $skip) === 0) {
+                return;
+            }
+        }
+
+        // Skip common volatile runtime keys.
+        $volatile_fragments = array('_lock', '_cache');
+        foreach ($volatile_fragments as $fragment) {
+            if (strpos($option_name, $fragment) !== false) {
                 return;
             }
         }

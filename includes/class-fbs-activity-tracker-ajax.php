@@ -393,8 +393,16 @@ class FBS_Activity_Tracker_Ajax {
             'theme_switched' => esc_html__('Theme Switched', 'fbs-activity-tracker'),
             'user_profile_updated' => esc_html__('Profile Updated', 'fbs-activity-tracker'),
             'user_registered' => esc_html__('User Registered', 'fbs-activity-tracker'),
+            'user_role_changed' => esc_html__('User Role Changed', 'fbs-activity-tracker'),
+            'user_password_reset' => esc_html__('Password Reset', 'fbs-activity-tracker'),
+            'media_uploaded' => esc_html__('Media Uploaded', 'fbs-activity-tracker'),
+            'media_deleted' => esc_html__('Media Deleted', 'fbs-activity-tracker'),
+            'comment_created' => esc_html__('Comment Created', 'fbs-activity-tracker'),
+            'comment_status_changed' => esc_html__('Comment Status Changed', 'fbs-activity-tracker'),
             'option_updated' => esc_html__('Setting Updated', 'fbs-activity-tracker')
         );
+
+        $labels = apply_filters('fbsat_action_labels', $labels);
 
         return $labels[$action_type] ?? ucwords(str_replace('_', ' ', $action_type));
     }
@@ -425,8 +433,16 @@ class FBS_Activity_Tracker_Ajax {
             'theme_switched' => 'primary',
             'user_profile_updated' => 'primary',
             'user_registered' => 'success',
+            'user_role_changed' => 'warning',
+            'user_password_reset' => 'warning',
+            'media_uploaded' => 'success',
+            'media_deleted' => 'danger',
+            'comment_created' => 'primary',
+            'comment_status_changed' => 'secondary',
             'option_updated' => 'primary'
         );
+
+        $colors = apply_filters('fbsat_action_colors', $colors);
 
         return $colors[$action_type] ?? 'secondary';
     }

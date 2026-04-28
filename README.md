@@ -6,9 +6,11 @@ A modern, granular user activity and audit log WordPress plugin with a custom-de
 
 ### Free Version
 - **Core Tracking**: User login/logout (successful/failed), post/page creation/editing/deletion/trashing, plugin activation/deactivation, theme activation, user profile updates, WordPress settings changes
+- **Extended Tracking**: Media upload/deletion, comment lifecycle events, user role changes, password resets
 - **Modern Dashboard**: Real-time activity feed, advanced filtering (user, date range, action type), search, card-based statistics overview
 - **Data Management**: Automatic cleanup of logs older than 30 days (configurable), bulk actions (delete, export selected)
 - **Basic Statistics**: Today's activity count, most active users, most common action types
+- **Developer API**: Custom event logging via helper function and action hook
 
 ## Installation
 
@@ -59,10 +61,13 @@ A modern, granular user activity and audit log WordPress plugin with a custom-de
 
 ### Actions
 - `fbs_at_cleanup_logs` - Triggered for automatic log cleanup
+- `fbsat_log_event` - Log custom events from third-party code
 
 ### Filters
 - `fbs_at_retention_days` - Modify log retention period (default: 30 days)
 - `fbs_at_auto_cleanup` - Enable/disable automatic cleanup (default: true)
+- `fbsat_action_labels` - Customize action labels in API responses/UI
+- `fbsat_action_colors` - Customize action badge colors in API responses/UI
 
 ## Customization
 
@@ -93,6 +98,14 @@ The JavaScript is modular and can be extended with custom functionality.
 For support and feature requests, please contact the plugin author.
 
 ## Changelog
+
+### 1.1.0
+- Added custom event logging API via `fbsat_log_event()`
+- Added logs for media upload/deletion
+- Added logs for comments created/status changed
+- Added logs for user role changes and password resets
+- Improved dashboard filter dropdowns with dynamic action/object types (including custom post types)
+- Added extensibility filters for action labels/colors
 
 ### 1.0.0
 - Initial release

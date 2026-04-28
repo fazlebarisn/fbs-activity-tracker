@@ -4,7 +4,7 @@ Tags: activity log, audit log, user tracking, security, monitoring
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,10 +19,13 @@ FBS Activity Tracker is a powerful, modern WordPress plugin that provides compre
 **🔍 Comprehensive Activity Tracking**
 * User login/logout (successful and failed attempts)
 * Post and page creation, editing, deletion, and trashing
+* Media upload/deletion and comment lifecycle events
+* User role changes and password reset events
 * Plugin activation and deactivation
 * Theme switching
 * User profile updates and registrations
 * WordPress settings changes
+* Custom event logging API for themes/plugins
 
 **📊 Modern Dashboard Interface**
 * Completely custom-designed interface (no WordPress admin styles)
@@ -40,6 +43,7 @@ FBS Activity Tracker is a powerful, modern WordPress plugin that provides compre
 **🛡️ Security & Performance**
 * Custom database table for optimal performance
 * Automatic cleanup of old logs (configurable retention)
+* Noise reduction for volatile option updates (locks/cache/transients)
 * SQL injection protection with prepared statements
 * Nonce verification for all AJAX requests
 * User capability checks for admin access
@@ -128,6 +132,15 @@ Yes, the plugin uses CSS custom properties (variables) for easy theming. You can
 6. Export functionality with JSON format
 
 == Changelog ==
+
+= 1.1.0 =
+* Added custom event logging API via `fbsat_log_event()` and `fbsat_log_event` action.
+* Added logging for media uploads/deletions.
+* Added logging for comment creation and comment status transitions.
+* Added logging for user role changes and password resets.
+* Improved filters so admin dropdowns include dynamic action/object types from real logs (supports custom post types automatically).
+* Added filter hooks for action labels/colors in the dashboard API.
+* Reduced activity-feed noise by skipping volatile option update keys by default.
 
 = 1.0.1 =
 * Compatible with WordPress 6.9 version 

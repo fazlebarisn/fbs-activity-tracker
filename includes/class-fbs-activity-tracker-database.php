@@ -371,6 +371,46 @@ class FBS_Activity_Tracker_Database {
     }
 
     /**
+     * Get distinct action types from logs table.
+     *
+     * @return array<string>
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function get_distinct_action_types() {
+        $results = $this->wpdb->get_col(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is controlled internally and this is a read-only aggregate query.
+            "SELECT DISTINCT action_type FROM {$this->table_name} WHERE action_type != '' ORDER BY action_type ASC"
+        );
+
+        if (!is_array($results)) {
+            return array();
+        }
+
+        return array_map('sanitize_text_field', $results);
+    }
+
+    /**
+     * Get distinct object types from logs table.
+     *
+     * @return array<string>
+     * @author Fazle Bari <fazlebarisn@gmail.com>
+     * @since 1.1.0
+     */
+    public function get_distinct_object_types() {
+        $results = $this->wpdb->get_col(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name is controlled internally and this is a read-only aggregate query.
+            "SELECT DISTINCT object_type FROM {$this->table_name} WHERE object_type != '' ORDER BY object_type ASC"
+        );
+
+        if (!is_array($results)) {
+            return array();
+        }
+
+        return array_map('sanitize_text_field', $results);
+    }
+
+    /**
      * Delete logs by IDs
      *
      * @param array $log_ids Array of log IDs to delete
