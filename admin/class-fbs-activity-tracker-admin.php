@@ -81,6 +81,33 @@ class FBS_Activity_Tracker_Admin {
             'dashicons-chart-line',
             30
         );
+
+        add_submenu_page(
+            'fbs-activity-tracker',
+            __('Dashboard', 'fbs-activity-tracker'),
+            __('Dashboard', 'fbs-activity-tracker'),
+            'manage_options',
+            'fbs-activity-tracker',
+            array($this, 'admin_page')
+        );
+
+        add_submenu_page(
+            'fbs-activity-tracker',
+            __('Our Plugins', 'fbs-activity-tracker'),
+            __('Our Plugins', 'fbs-activity-tracker'),
+            'manage_options',
+            'fbs-activity-tracker-plugins',
+            array($this, 'render_our_plugins_page')
+        );
+
+        add_submenu_page(
+            'fbs-activity-tracker',
+            __('Meet The Author', 'fbs-activity-tracker'),
+            __('Meet The Author', 'fbs-activity-tracker'),
+            'manage_options',
+            'fbs-activity-tracker-author',
+            array($this, 'render_author_page')
+        );
     }
 
     /**
@@ -422,4 +449,21 @@ class FBS_Activity_Tracker_Admin {
         }
         return ucwords(str_replace(array('-', '_'), ' ', $key));
     }
+
+    /**
+     * Render Our Plugins Page
+     * @since 1.1.1
+     */
+    public function render_our_plugins_page() {
+        include FBS_ACTIVITY_TRACKER_PLUGIN_DIR . 'admin/templates/our-plugins.php';
+    }
+
+    /**
+     * Render Meet the Author Page
+     * @since 1.1.1
+     */
+    public function render_author_page() {
+        include FBS_ACTIVITY_TRACKER_PLUGIN_DIR . 'admin/templates/plugin-author.php';
+    }
+
 }

@@ -2,9 +2,9 @@
 Contributors: fazlebari
 Tags: activity log, audit log, user tracking, security, monitoring
 Requires at least: 5.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -132,6 +132,10 @@ Yes, the plugin uses CSS custom properties (variables) for easy theming. You can
 6. Export functionality with JSON format
 
 == Changelog ==
+= 1.1.1 =
+* New: Integrated "Our Plugins" portfolio showcase page.
+* New: Integrated "Meet The Author" profile details page.
+* Tweak: Redesigned the backend UI with modern aesthetics, clean drop shadows, and responsive grid layouts.
 
 = 1.1.0 =
 * Added custom event logging API via `fbsat_log_event()` and `fbsat_log_event` action.
